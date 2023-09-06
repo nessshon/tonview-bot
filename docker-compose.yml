@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+
+  bot:
+    build:
+      context: .
+    container_name: tonview-bot
+    command: sh -c "cd /usr/src/app && python -m app"
+    restart: always
+    depends_on:
+      - redis
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+
+  redis:
+    image: redis:alpine
+    container_name: tonview-redis
+    restart: always
+    volumes:
+      - ./redis/data/:/data
+    networks:
+      - network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+
+networks:
+  network:
