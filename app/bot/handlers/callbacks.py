@@ -72,11 +72,20 @@ async def contract(call: CallbackQuery, state: FSMContext, chat_id, message_id) 
             except KeyError:
                 text = messages.call__attributes_not_found
                 await call.answer(text, show_alert=True)
+            except (MessageIsTooLong, BadRequestMessageIsTooLong):
+                text = messages.call__attributes_too_long
+                await call.answer(text, show_alert=True)
+
         case callback_data.metadata:
-            await windows.detail_metadata(
-                bot=call.bot, state=state,
-                chat_id=chat_id, message_id=message_id
-            )
+            try:
+                await windows.detail_metadata(
+                    bot=call.bot, state=state,
+                    chat_id=chat_id, message_id=message_id
+                )
+            except (MessageIsTooLong, BadRequestMessageIsTooLong):
+                text = messages.call__metadata_too_long
+                await call.answer(text, show_alert=True)
+
         case callback_data.show_json:
             try:
                 await windows.detail_json(
