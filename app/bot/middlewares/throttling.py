@@ -135,7 +135,9 @@ class ThrottlingMiddleware(BaseMiddleware):
             key = f"{self.prefix}_message"
 
         try:
+            from ..utils.message import delete_message
             await dispatcher.throttle(key, rate=limit)
+            await delete_message(message)
         except Throttled:
             raise CancelHandler()
 
@@ -157,6 +159,7 @@ class ThrottlingMiddleware(BaseMiddleware):
 
         try:
             await dispatcher.throttle(key, rate=limit)
+            await call.answer()
         except Throttled:
             raise CancelHandler()
 
