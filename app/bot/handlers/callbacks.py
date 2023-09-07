@@ -1,6 +1,7 @@
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery
+from aiogram.utils.exceptions import MessageIsTooLong
 
 from app.bot.filters import IsPrivate
 from app.bot.handlers import windows
@@ -75,6 +76,15 @@ async def contract(call: CallbackQuery, state: FSMContext, chat_id, message_id) 
                 bot=call.bot, state=state,
                 chat_id=chat_id, message_id=message_id
             )
+        case callback_data.show_json:
+            try:
+                await windows.detail_json(
+                    bot=call.bot, state=state,
+                    chat_id=chat_id, message_id=message_id,
+                )
+            except MessageIsTooLong:
+                text = messages.call__json_too_long
+                await call.answer(text, show_alert=True)
 
     await call.answer()
 

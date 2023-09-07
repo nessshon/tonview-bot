@@ -121,6 +121,22 @@ async def information_collection(bot: Bot, state: FSMContext, chat_id: int, mess
     await State.information.set()
 
 
+async def information_transaction(bot: Bot, state: FSMContext, chat_id: int, message_id: int) -> None:
+    data = await state.get_data()
+
+    transaction: Transaction = Transaction(**data["transaction"])
+
+    markup = inline.information_transaction()
+    text = messages.contract_transaction(transaction)
+
+    await edit_or_send_message(
+        bot=bot, state=state,
+        text=text, markup=markup,
+        chat_id=chat_id, message_id=message_id,
+    )
+    await State.information.set()
+
+
 async def detail_attributes(bot: Bot, state: FSMContext, chat_id: int, message_id: int) -> None:
     data = await state.get_data()
 
@@ -161,17 +177,17 @@ async def detail_metadata(bot: Bot, state: FSMContext, chat_id: int, message_id:
     await State.detail.set()
 
 
-async def contract_transaction(bot: Bot, state: FSMContext, chat_id: int, message_id: int) -> None:
+async def detail_json(bot: Bot, state: FSMContext, chat_id: int, message_id: int) -> None:
     data = await state.get_data()
 
     transaction: Transaction = Transaction(**data["transaction"])
 
-    markup = inline.go_main()
-    text = messages.contract_transaction(transaction)
+    markup = inline.back()
+    text = hcode(json.dumps(transaction.dict(), ensure_ascii=False, sort_keys=True, indent=2))
 
     await edit_or_send_message(
         bot=bot, state=state,
         text=text, markup=markup,
         chat_id=chat_id, message_id=message_id,
     )
-    await State.information.set()
+    await State.detail.set()

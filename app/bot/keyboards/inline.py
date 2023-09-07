@@ -166,3 +166,22 @@ def information_collection(account_id: str) -> InlineKeyboardMarkup:
     )
 
     return markup
+
+
+def information_transaction() -> InlineKeyboardMarkup:
+    markup = InlineKeyboardMarkup(row_width=1)
+
+    markup.row(
+        InlineKeyboardButton(
+            text=buttons.show_json,
+            callback_data=callback_data.show_json,
+        )
+    )
+    markup.row(
+        InlineKeyboardButton(
+            text=buttons.go_main,
+            callback_data=callback_data.go_main,
+        )
+    )
+
+    return markup

@@ -69,6 +69,7 @@ not_found = (
 )
 
 call__attributes_not_found = "Attributes not found!"
+call__json_too_long = "JSON is too long to fit in a message!"
 
 contract_transactions = (
     f"{hide_link('https://telegra.ph//file/466f2347ff0b174973902.jpg')}"
