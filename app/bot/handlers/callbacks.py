@@ -8,6 +8,7 @@ from app.bot.handlers import windows
 from app.bot.keyboards import callback_data
 from app.bot.states import State
 from app.bot.texts import messages
+from app.bot.exceptions import BadRequestMessageIsTooLong
 
 
 async def main(call: CallbackQuery, state: FSMContext, chat_id, message_id) -> None:
@@ -82,7 +83,7 @@ async def contract(call: CallbackQuery, state: FSMContext, chat_id, message_id) 
                     bot=call.bot, state=state,
                     chat_id=chat_id, message_id=message_id,
                 )
-            except MessageIsTooLong:
+            except (MessageIsTooLong, BadRequestMessageIsTooLong):
                 text = messages.call__json_too_long
                 await call.answer(text, show_alert=True)
 
