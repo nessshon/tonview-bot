@@ -96,7 +96,7 @@ def information(account: Account, preview: str) -> str:
         f"• {hbold('Status:')}\n"
         f"{hcode(account.status)}\n\n"
         f"• {hbold('Balance:')}\n"
-        f"{hcode(account.balance.to_amount(8))} TON\n\n"
+        f"{hcode(f'{account.balance.to_amount(8):,.8f}')} TON\n\n"
         f"• {hbold('Contract type:')}\n"
         f"{hcode(', '.join(i for i in account.interfaces))}\n\n"
         f"• {hbold('Address:')}\n"
