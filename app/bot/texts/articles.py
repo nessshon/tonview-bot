@@ -1,60 +1,81 @@
 from datetime import datetime
 
 from aiogram.types import InlineQueryResultArticle, InputTextMessageContent
-from pytonapi.schema.blockchain import Transaction
+from pytonapi.schema.events import AccountEvent
 from pytonapi.schema.jettons import JettonBalance, JettonHolder, JettonInfo
 from pytonapi.schema.nft import NftItem
-from pytonapi.utils import nano_to_amount
+
+from app.bot.utils.address import AddressDisplay
 
 
-def create_transaction(transaction: Transaction) -> InlineQueryResultArticle:
-    timestamp = f"{datetime.fromtimestamp(transaction.utime).strftime('%d %b, %H:%M')} "
+def create_transaction(event: AccountEvent) -> InlineQueryResultArticle:
+    timestamp = f"{datetime.fromtimestamp(event.timestamp).strftime('%d %b, %H:%M')} "
+    action = event.actions[0]
 
-    if any(transaction.out_msgs):
-        action = "↑ {} Sent - {} TON"
-        destination = (
-            transaction.out_msgs[0].destination.address.to_userfriendly()
-            if transaction.out_msgs[0].destination else None
-        )
-        source = (
-            transaction.out_msgs[0].source.address.to_userfriendly()
-            if transaction.out_msgs[0].source else None
-        )
-        comment = (
-            transaction.out_msgs[0].decoded_body.get("text")
-            if transaction.out_msgs[0].decoded_op_name == "text_comment" else None
-        )
-        amount = nano_to_amount(transaction.out_msgs[0].value, 4)
-    else:
-        action = "↓ {} Received + {} TON"
-        destination = (
-            transaction.in_msg.destination.address.to_userfriendly()
-            if transaction.in_msg.destination else None
-        )
-        source = (
-            transaction.in_msg.source.address.to_userfriendly()
-            if transaction.in_msg.source else None
-        )
-        comment = (
-            transaction.in_msg.decoded_body.get("text")
-            if transaction.in_msg.decoded_op_name == "text_comment" else None
-        )
-        amount = nano_to_amount(transaction.in_msg.value, 4)
+    title = action.simple_preview.description
+    description = f"{timestamp}\n"
+    thumb_url = action.simple_preview.value_image
 
-    title = action.format(timestamp, amount)
-    description = (
-        f"{source[0:6]}. . .{source[-4:]} → {destination[0:6]}. . .{destination[-4:]}"
-    )
-    description += (
-        f"\n\n• {f'{comment[:35]}...' if len(comment) > 35 else comment}"
-        if comment else ""
-    )
+    if action.TonTransfer:
+        sender = action.TonTransfer.sender
+        recipient = action.TonTransfer.recipient
+        if event.account.address.to_userfriendly() == sender.address.to_userfriendly():
+            title = f"↑ Sent - {action.simple_preview.value}"
+        else:
+            title = f"↓ Received + {action.simple_preview.value}"
+        description += f"• {AddressDisplay(sender).short()} → {AddressDisplay(recipient).short()}\n"
+        description += f"• {action.TonTransfer.comment}" if action.TonTransfer.comment else ""
+
+    elif action.JettonTransfer:
+        sender = action.JettonTransfer.sender
+        recipient = action.JettonTransfer.recipient
+        if event.account.address.to_userfriendly() == sender.address.to_userfriendly():
+            title = f"↑ Sent - {action.simple_preview.value}"
+        else:
+            title = f"↓ Received + {action.simple_preview.value}"
+        description += f"• {AddressDisplay(sender).short()} → {AddressDisplay(recipient).short()}\n"
+        description += f"• {action.JettonTransfer.comment}" if action.JettonTransfer.comment else ""
+
+    elif action.ContractDeploy:
+        description += f"• {action.ContractDeploy.address.to_userfriendly()}\n"
+        description += "• Interfaces: " + ", ".join(action.ContractDeploy.interfaces)
+
+    elif action.JettonMint:
+        ...
+
+    elif action.JettonBurn:
+        ...
+
+    elif action.NftItemTransfer:
+        sender = action.NftItemTransfer.sender
+        recipient = action.NftItemTransfer.recipient
+        nft: NftItem = action.NftItemTransfer.nft  # noqa
+        nft_name = nft.dns or nft.metadata["name"] if nft.metadata else "Unknown"
+        if event.account.address.to_userfriendly() == sender.address.to_userfriendly():
+            title = f"↑ Sent NFT {nft_name}"
+        else:
+            title = f"↓ Received NFT {nft_name}"
+        description += f"• {AddressDisplay(sender).short()} → {AddressDisplay(recipient).short()}"
+        thumb_url = nft.previews[-1].url
+
+    elif action.NftPurchase:
+        nft: NftItem = action.NftPurchase.nft
+        seller = action.NftPurchase.seller
+        buyer = action.NftPurchase.buyer
+        nft_name = nft.dns or nft.metadata["name"] if nft.metadata else "Unknown"
+        title = f"↓ Purchased NFT {nft_name}"
+        description += f"• {AddressDisplay(seller).short()} → {AddressDisplay(buyer).short()}\n"
+        if action.NftPurchase.amount:
+            description += f"• Price: {action.simple_preview.value}"
+        thumb_url = nft.previews[-1].url
+
     return InlineQueryResultArticle(
         title=title,
-        id=transaction.hash,
+        id=event.event_id,
         description=description,
+        thumb_url=thumb_url,
         input_message_content=InputTextMessageContent(
-            message_text=transaction.hash,
+            message_text=event.event_id,
         )
     )
 

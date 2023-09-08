@@ -1,8 +1,10 @@
+import logging
+
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message
 from pytonapi import AsyncTonapi
-from pytonapi.exceptions import TONAPIUnauthorizedError
+from pytonapi.exceptions import TONAPIUnauthorizedError, TONAPITooManyRequestsError
 
 from app.bot.filters import IsPrivate
 from app.bot.handlers import windows
@@ -83,8 +85,11 @@ async def main(message: Message, state: FSMContext, tonapi: AsyncTonapi, chat_id
         except TONAPIUnauthorizedError:
             raise TONAPIUnauthorizedError
 
-        except (Exception,) as err:
-            print(err)
+        except TONAPITooManyRequestsError:
+            raise TONAPITooManyRequestsError
+
+        except (Exception,) as e:
+            logging.error(e)
             text = messages.not_found
             markup = inline.go_main()
             await edit_or_send_message(

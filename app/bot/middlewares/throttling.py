@@ -121,10 +121,13 @@ class ThrottlingMiddleware(BaseMiddleware):
 
     # noinspection PyUnusedLocal
     async def on_process_message(self, message: Message, data: dict):
+        from ..utils.message import delete_message
+
         dispatcher = Dispatcher.get_current()
         handler = current_handler.get()
 
         if message.from_user.id in USERS_THROTTLED:
+            await delete_message(message)
             raise CancelHandler()
 
         if handler:
@@ -137,7 +140,6 @@ class ThrottlingMiddleware(BaseMiddleware):
         try:
             await dispatcher.throttle(key, rate=limit)
         except Throttled:
-            from ..utils.message import delete_message
             await delete_message(message)
             raise CancelHandler()
 
@@ -147,6 +149,7 @@ class ThrottlingMiddleware(BaseMiddleware):
         handler = current_handler.get()
 
         if call.from_user.id in USERS_THROTTLED:
+            await call.answer()
             raise CancelHandler()
 
         if handler:

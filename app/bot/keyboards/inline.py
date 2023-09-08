@@ -52,6 +52,14 @@ def api_key_invalid() -> InlineKeyboardMarkup:
     )
 
 
+def set_api_key() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text=buttons.set_api_key, callback_data=callback_data.set_api_key)]
+        ]
+    )
+
+
 def information(account_id: str) -> InlineKeyboardMarkup:
     markup = InlineKeyboardMarkup(row_width=2)
 

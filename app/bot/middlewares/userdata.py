@@ -24,7 +24,7 @@ class UserDataMiddleware(LifetimeControllerMiddleware):
         user_data = await state.get_data()
         testnet = user_data.get("testnet", False)
         tonapi_key = user_data.get("tonapi_key", config.tonapi.KEY)
-        tonapi = AsyncTonapi(tonapi_key, testnet=testnet)
+        tonapi = AsyncTonapi(tonapi_key, testnet=testnet, max_retries=10)
         message_id = user_data.get("message_id", None)
 
         data["message_id"] = message_id

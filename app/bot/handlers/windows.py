@@ -52,6 +52,18 @@ async def invalid_api_key(bot: Bot, state: FSMContext, chat_id: int, message_id:
     await State.api_key_invalid.set()
 
 
+async def too_many_requests(bot: Bot, state: FSMContext, chat_id: int, message_id: int) -> None:
+    text = messages.too_many_requests__error
+    markup = inline.set_api_key()
+
+    await edit_or_send_message(
+        bot=bot, state=state,
+        chat_id=chat_id, message_id=message_id,
+        text=text, markup=markup,
+    )
+    await State.main.set()
+
+
 async def information(bot: Bot, state: FSMContext, chat_id: int, message_id: int) -> None:
     data = await state.get_data()
 

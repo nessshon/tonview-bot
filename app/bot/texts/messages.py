@@ -61,6 +61,11 @@ api_key_invalid__error = (
     "Send new API key or remove existing:\n\n"
     "• Get an API key from tonconsole.com."
 )
+too_many_requests__error = (
+    f"{hide_link('https://telegra.ph//file/bf0a404e1bf9a4efdeda9.jpg')}"
+    "<b>Rate limit exceeded!</b>\n\n"
+    "• Please try again later, or set your API key."
+)
 
 not_found = (
     f"{hide_link('https://telegra.ph//file/fa24c09522153e3b2273e.jpg')}"

@@ -9,7 +9,7 @@ from aiogram.utils.exceptions import (BotBlocked, ChatNotFound, InvalidQueryID,
                                       MessageToEditNotFound, MessageCantBeEdited, MessageNotModified,
                                       MessageToDeleteNotFound, MessageCantBeDeleted, MessageIsTooLong)
 from aiogram.utils.markdown import hcode, hbold
-from pytonapi.exceptions import TONAPIUnauthorizedError
+from pytonapi.exceptions import TONAPIUnauthorizedError, TONAPITooManyRequestsError
 
 from . import windows
 from ..utils.message import delete_message
@@ -34,6 +34,22 @@ async def error_handler(update: Update, exception: Exception) -> bool:
         message_id = data.get("message_id", None)
 
         await windows.invalid_api_key(
+            bot=dp.bot, state=state,
+            chat_id=user.id, message_id=message_id,
+        )
+        await delete_message(update.message)
+
+        return True
+
+    if isinstance(exception, TONAPITooManyRequestsError):
+        user: User = User.get_current()
+        dp: Dispatcher = Dispatcher.get_current()
+        state = FSMContext(dp.storage, user.id, user.id)
+
+        data = await state.get_data()
+        message_id = data.get("message_id", None)
+
+        await windows.too_many_requests(
             bot=dp.bot, state=state,
             chat_id=user.id, message_id=message_id,
         )
