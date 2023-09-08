@@ -37,7 +37,7 @@ def create_transaction(event: AccountEvent) -> InlineQueryResultArticle:
         description += f"• {action.JettonTransfer.comment}" if action.JettonTransfer.comment else ""
 
     elif action.ContractDeploy:
-        description += f"• {action.ContractDeploy.address.to_userfriendly()}\n"
+        title = action.simple_preview.name
         description += "• Interfaces: " + ", ".join(action.ContractDeploy.interfaces)
 
     elif action.JettonMint:
