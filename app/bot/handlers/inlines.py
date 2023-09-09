@@ -37,23 +37,23 @@ async def inline_handler(inline: InlineQuery, tonapi: AsyncTonapi):
                         results=results, cache_time=100, is_personal=True, next_offset=next_offset
                     )
             case query if query.startswith("collectibles"):
-                offset = inline.offset or 0
+                offset = int(inline.offset) if inline.offset else 0
                 account_id = query.split(" ")[1]
 
                 items = await tonapi.accounts.get_nfts(
                     account_id=account_id, limit=50,
-                    offset=int(offset), indirect_ownership=True,
+                    offset=offset, indirect_ownership=True,
                 )
-
-                results = [articles.create_collectible(item) for item in items.nft_items]
+                results = [articles.create_collectible(item) for item in
+                           sorted(items.nft_items, key=lambda item: item.index)]
                 if results:
-                    next_offset = str(int(offset) + 50)
+                    next_offset = str(offset + 50)
                     await inline.answer(
                         results=results, cache_time=10, is_personal=True, next_offset=next_offset
                     )
 
             case query if query.startswith("tokens"):
-                offset = inline.offset or 0
+                offset = int(inline.offset) if inline.offset else 0
                 account_id = query.split(" ")[1]
 
                 items = await tonapi.accounts.get_jettons_balances(account_id=account_id)
@@ -62,40 +62,42 @@ async def inline_handler(inline: InlineQuery, tonapi: AsyncTonapi):
                 results = [articles.create_token(item) for item in items]
                 results = [article for article in results if article]
                 if results:
-                    next_offset = str(int(offset) + 1)
+                    next_offset = str(offset + 50)
                     await inline.answer(
                         results=results, cache_time=10, is_personal=True, next_offset=next_offset
                     )
 
             case query if query.startswith("items"):
-                offset = inline.offset or 0
+                offset = int(inline.offset) if inline.offset else 0
                 account_id = query.split(" ")[1]
 
                 items = await tonapi.nft.get_items_by_collection_address(
-                    account_id=account_id, limit=50, offset=int(offset),
+                    account_id=account_id, limit=50, offset=offset,
                 )
 
-                results = [articles.create_collectible(item) for item in items.nft_items]
+                results = [articles.create_collectible(item) for item in
+                           sorted(items.nft_items, key=lambda item: item.index)]
                 if results:
-                    next_offset = str(int(offset) + 1)
+                    next_offset = str(offset + 50)
                     await inline.answer(
                         results=results, cache_time=10, is_personal=True, next_offset=next_offset
                     )
 
             case query if query.startswith("holders"):
-                offset = inline.offset or 0
+                offset = int(inline.offset) if inline.offset else 0
                 account_id = query.split(" ")[1]
 
                 jetton = await tonapi.jettons.get_info(account_id=account_id)
                 items = await tonapi.jettons.get_holders(account_id=account_id)
-                items = paginate(items.addresses, int(offset), 50)
+                items = paginate(items.addresses, offset, 50)
 
                 results = [articles.create_holders(jetton, item) for item in items]
                 if results:
-                    next_offset = str(int(offset) + 1)
+                    next_offset = str(offset + 50)
                     await inline.answer(
                         results=results, cache_time=10, is_personal=True, next_offset=next_offset
                     )
+
     except Exception as e:
         logging.error(e)
 
