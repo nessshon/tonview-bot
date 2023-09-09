@@ -1,3 +1,4 @@
+import asyncio
 import calendar
 from datetime import datetime, timedelta
 
@@ -395,6 +396,7 @@ async def confirm_export(call: CallbackQuery, state: FSMContext, tonapi: AsyncTo
                             break
                         before_lt = search.events[-1].lt
                         events.events += search.events
+                        await asyncio.sleep(1)
 
                     export_manager = ExportManager(events)
                     if data["export_type"] == callback_data.export_as_json:
