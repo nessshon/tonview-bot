@@ -16,7 +16,7 @@ from app.bot.keyboards import callback_data, inline
 from app.bot.keyboards.inline import InlineKeyboardCalendar
 from app.bot.middlewares.throttling import ThrottlingContext, EMOJIS_MAGNIFIER, rate_limit
 from app.bot.states import State
-from app.bot.texts import messages
+from app.bot.texts import messages, buttons
 from app.bot.exceptions import BadRequestMessageIsTooLong
 from app.bot.utils.export import ExportManager
 from app.bot.utils.message import edit_or_send_message, delete_previous_message
@@ -406,13 +406,13 @@ async def confirm_export(call: CallbackQuery, state: FSMContext, tonapi: AsyncTo
 
                     end_export_date = datetime.now()
                     time_spent_seconds = (end_export_date - start_export_date).total_seconds()
-                    time_spent = timedelta(seconds=time_spent_seconds)
+                    time_spent = str(timedelta(seconds=time_spent_seconds)).split(".")[0]
 
                     caption = messages.export_completed.format(
                         address=account.address.to_userfriendly(),
                         start_date=datetime.fromtimestamp(start_date).strftime("%Y-%m-%d %H:%M"),
                         end_date=datetime.fromtimestamp(end_date).strftime("%Y-%m-%d %H:%M"),
-                        export_type=data["export_type"],
+                        export_type=getattr(buttons, data["export_type"]),
                         total_rows=len(events.events),
                         time_spent=time_spent,
                     )
