@@ -1,5 +1,5 @@
 import calendar
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
@@ -11,12 +11,14 @@ from pytonapi.schema.events import AccountEvents
 
 from app.bot.filters import IsPrivate
 from app.bot.handlers import windows
-from app.bot.keyboards import callback_data
+from app.bot.keyboards import callback_data, inline
 from app.bot.keyboards.inline import InlineKeyboardCalendar
 from app.bot.middlewares.throttling import ThrottlingContext, EMOJIS_MAGNIFIER, rate_limit
 from app.bot.states import State
 from app.bot.texts import messages
 from app.bot.exceptions import BadRequestMessageIsTooLong
+from app.bot.utils.export import ExportManager
+from app.bot.utils.message import edit_or_send_message, delete_previous_message
 
 
 @rate_limit(1)
@@ -361,7 +363,7 @@ async def select_date(call: CallbackQuery, state: FSMContext, chat_id, message_i
 
 
 @rate_limit(1)
-async def confirm_export(call: CallbackQuery, state: FSMContext, chat_id, message_id) -> None:
+async def confirm_export(call: CallbackQuery, state: FSMContext, tonapi: AsyncTonapi, chat_id, message_id) -> None:
     data = await state.get_data()
 
     match call.data:
@@ -371,7 +373,63 @@ async def confirm_export(call: CallbackQuery, state: FSMContext, chat_id, messag
                 chat_id=chat_id, message_id=message_id,
             )
         case callback_data.confirm:
-            ...
+            try:
+
+                async with ThrottlingContext(bot=call.bot, state=state,
+                                             chat_id=chat_id, message_id=message_id,
+                                             emojis=EMOJIS_MAGNIFIER):
+                    account: Account = Account(**data["account"])
+                    start_date = data.get("start_date", None)
+                    end_date = data.get("end_date", None)
+                    before_lt = None
+                    start_export_date = datetime.now()
+                    events = AccountEvents(events=[], next_from=0)
+
+                    while True:
+                        search = await tonapi.accounts.get_events(
+                            account_id=account.address.to_userfriendly(),
+                            start_data=start_date, end_data=end_date, limit=1000,
+                            before_lt=before_lt,
+                        )
+                        if len(search.events) == 0:
+                            break
+                        before_lt = search.events[-1].lt
+                        events.events += search.events
+
+                    export_manager = ExportManager(events)
+                    if data["export_type"] == callback_data.export_as_json:
+                        document = await export_manager.save_as_json()
+                    else:
+                        document = await export_manager.save_as_csv()
+
+                    end_export_date = datetime.now()
+                    time_spent_seconds = (end_export_date - start_export_date).total_seconds()
+                    time_spent = timedelta(seconds=time_spent_seconds)
+
+                    caption = messages.export_completed.format(
+                        address=account.address.to_userfriendly(),
+                        start_date=datetime.fromtimestamp(start_date).strftime("%Y-%m-%d %H:%M"),
+                        end_date=datetime.fromtimestamp(end_date).strftime("%Y-%m-%d %H:%M"),
+                        export_type=data["export_type"],
+                        total_rows=len(events.events),
+                        time_spent=time_spent,
+                    )
+                    await call.message.answer_document(document=document, caption=caption)
+                    await delete_previous_message(bot=call.bot, state=state)
+                    await windows.main(
+                        bot=call.bot, state=state,
+                        chat_id=chat_id, message_id=message_id,
+                    )
+
+            except (Exception,) as error:
+                text = messages.export_failed.format(error=error)
+                markup = inline.go_main()
+                await edit_or_send_message(
+                    bot=call.bot, state=state,
+                    chat_id=chat_id, message_id=message_id,
+                    text=text, markup=markup,
+                )
+                raise
 
     await call.answer()
 

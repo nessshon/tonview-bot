@@ -96,7 +96,6 @@ events_page = (
     f"{hbold('Transactions history:')}\n"
 )
 
-
 select_date = (
     f"{hide_link('https://telegra.ph//file/27cfb15b59be2527f26b1.jpg')}"
     "<b>Select date range to export:</b>\n\n"
@@ -116,6 +115,29 @@ confirm_export = (
     f"• {hbold('Export type:')}\n"
     f"{hcode('{export_type}')}\n\n"
     f"{hbold('Confirm export?')}\n"
+)
+
+export_completed = (
+    "#ExportDetails\n\n"
+    f"• {hbold('Account address:')}\n"
+    f"{hcode('{address}')}\n\n"
+    f"• {hbold('Start date:')}\n"
+    f"{hcode('{start_date}')}\n\n"
+    f"• {hbold('End date:')}\n"
+    f"{hcode('{end_date}')}\n\n"
+    f"• {hbold('Export type:')}\n"
+    f"{hcode('{export_type}')}\n\n"
+    f"• {hbold('Total rows:')}\n"
+    f"{hcode('{total_rows}')}\n\n"
+    f"• {hbold('Time spent:')}\n"
+    f"{hcode('{time_spent}')}"
+)
+
+export_failed = (
+    f"{hide_link('https://telegra.ph//file/19bf4c4724bb1aa803fa1.jpg')}"
+    f"{hbold('Export failed!')}\n\n"
+    f"• {hbold('Error:')}\n"
+    f"{hcode('{error}')}"
 )
 
 

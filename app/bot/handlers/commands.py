@@ -19,10 +19,13 @@ from app.db.models import User
 
 @rate_limit(2)
 async def start(message: Message, state: FSMContext, db: Database, chat_id: int) -> None:
-    msg = await message.answer(text="👋")
+    data = await state.get_data()
+    tonapi_key = data.get("tonapi_key", None)
+    msg = await message.answer(text="💎")
+
     await delete_previous_message(message.bot, state)
     async with state.proxy() as data: data.clear()  # noqa:E701
-    await state.update_data(message_id=msg.message_id)
+    await state.update_data(message_id=msg.message_id, tonapi_key=tonapi_key)
 
     if not await User.is_exist(db.sessionmaker, user_id=chat_id): await User.add(  # noqa:E701
         sessionmaker=db.sessionmaker,

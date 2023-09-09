@@ -5,3 +5,5 @@ redis==5.0.0
 aiomysql==0.2.0
 cryptography==41.0.3
 pytonapi==0.1.0
+aiofiles~=23.2.1
+aiocsv~=1.2.4

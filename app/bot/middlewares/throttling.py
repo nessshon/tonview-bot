@@ -126,7 +126,7 @@ class ThrottlingMiddleware(BaseMiddleware):
         dispatcher = Dispatcher.get_current()
         handler = current_handler.get()
 
-        if message.from_user.id in USERS_THROTTLED:
+        if int(message.from_user.id) in USERS_THROTTLED:
             await delete_message(message)
             raise CancelHandler()
 
@@ -148,7 +148,7 @@ class ThrottlingMiddleware(BaseMiddleware):
         dispatcher = Dispatcher.get_current()
         handler = current_handler.get()
 
-        if call.from_user.id in USERS_THROTTLED:
+        if int(call.from_user.id) in USERS_THROTTLED:
             await call.answer()
             raise CancelHandler()
 
