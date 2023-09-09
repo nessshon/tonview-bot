@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 
 from aiogram.utils.markdown import hlink
-from pytonapi.schema.accounts import AccountAddress
+from pytonapi.schema.accounts import AccountAddress, Account
 
 
 @dataclass
 class AddressDisplay:
 
-    def __init__(self, account: AccountAddress) -> None:
+    def __init__(self, account: Account | AccountAddress) -> None:
         self.account = account
         self.name = account.name
         self.address = account.address.to_userfriendly()

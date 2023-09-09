@@ -8,7 +8,7 @@ from pytonapi.schema.nft import NftItem
 from app.bot.utils.address import AddressDisplay
 
 
-def create_transaction(event: AccountEvent) -> InlineQueryResultArticle:
+def create_event_article(event: AccountEvent) -> InlineQueryResultArticle:
     timestamp = f"{datetime.fromtimestamp(event.timestamp).strftime('%d %b, %H:%M')} "
     action = event.actions[0]
 
@@ -24,7 +24,7 @@ def create_transaction(event: AccountEvent) -> InlineQueryResultArticle:
         else:
             title = f"↓ Received + {action.simple_preview.value}"
         description += f"• {AddressDisplay(sender).short()} → {AddressDisplay(recipient).short()}\n"
-        description += f"• {action.TonTransfer.comment}" if action.TonTransfer.comment else ""
+        description += f"• Comment: {action.TonTransfer.comment}" if action.TonTransfer.comment else ""
 
     elif action.JettonTransfer:
         sender = action.JettonTransfer.sender
@@ -34,7 +34,7 @@ def create_transaction(event: AccountEvent) -> InlineQueryResultArticle:
         else:
             title = f"↓ Received + {action.simple_preview.value}"
         description += f"• {AddressDisplay(sender).short()} → {AddressDisplay(recipient).short()}\n"
-        description += f"• {action.JettonTransfer.comment}" if action.JettonTransfer.comment else ""
+        description += f"• Comment: {action.JettonTransfer.comment}" if action.JettonTransfer.comment else ""
 
     elif action.ContractDeploy:
         title = action.simple_preview.name

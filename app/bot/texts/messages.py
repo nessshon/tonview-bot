@@ -78,15 +78,45 @@ call__attributes_not_found = "Attributes not found!"
 call__json_too_long = "JSON is too long to fit in a message!"
 call__metadata_too_long = "Metadata is too long to fit in a message!"
 call__attributes_too_long = "Attributes is too long to fit in a message!"
+call__need_api_key = "To export you need to set your API key!"
 
-contract_transactions = (
+contract_events = (
     f"{hide_link('https://telegra.ph//file/466f2347ff0b174973902.jpg')}"
     "<b>Transactions history:</b>\n\n"
     f"• {hbold('Address:')}\n"
     "<code>{address}</code>"
 )
 
-no_more_transactions = "This is the last page, no more transactions."
+no_more_pages = "This is the last page."
+
+events_page = (
+    f"{hide_link('https://telegra.ph//file/26d99fcbfd04a3657606b.jpg')}"
+    f"• {hbold('Address:')}\n"
+    f"{hcode('{address}')}\n\n"
+    f"{hbold('Transactions history:')}\n"
+)
+
+
+select_date = (
+    f"{hide_link('https://telegra.ph//file/27cfb15b59be2527f26b1.jpg')}"
+    "<b>Select date range to export:</b>\n\n"
+    f"• {hbold('Start date:')}\n"
+    f"{hcode('{start_date}')}\n\n"
+    f"• {hbold('End date:')}\n"
+    f"{hcode('{end_date}')}"
+)
+
+confirm_export = (
+    f"{hide_link('https://telegra.ph//file/15ad871627114c4baee13.jpg')}"
+    "<b>Export details:</b>\n\n"
+    f"• {hbold('Start date:')}\n"
+    f"{hcode('{start_date}')}\n\n"
+    f"• {hbold('End date:')}\n"
+    f"{hcode('{end_date}')}\n\n"
+    f"• {hbold('Export type:')}\n"
+    f"{hcode('{export_type}')}\n\n"
+    f"{hbold('Confirm export?')}\n"
+)
 
 
 def information(account: Account, preview: str) -> str:
@@ -98,7 +128,7 @@ def information(account: Account, preview: str) -> str:
         f"• {hbold('Balance:')}\n"
         f"{hcode(f'{account.balance.to_amount(8):,.8f}')} TON\n\n"
         f"• {hbold('Contract type:')}\n"
-        f"{hcode(', '.join(i for i in account.interfaces))}\n\n"
+        f"{hcode(', '.join(i for i in account.interfaces) if account.interfaces else 'Unknown')}\n\n"
         f"• {hbold('Address:')}\n"
         f"{hcode(account.address.to_userfriendly())}\n\n"
         f"• {hbold('Raw:')}\n"
@@ -193,42 +223,42 @@ def information_collection(account: Account, collection: NftCollection) -> str:
     return text
 
 
-def contract_transaction(transaction: Transaction):
+def contract_event(event: Transaction):
     text = (
         f"• {hbold('Timestamp:')}\n"
-        f"{hcode(datetime.fromtimestamp(transaction.utime).strftime('%d.%m.%Y, %H:%M:%S'))}\n\n"
+        f"{hcode(datetime.fromtimestamp(event.utime).strftime('%d.%m.%Y, %H:%M:%S'))}\n\n"
     )
 
-    if any(transaction.out_msgs):
+    if any(event.out_msgs):
         action = f"Sent TON"
         destination = (
-            transaction.out_msgs[0].destination.address.to_userfriendly()
-            if transaction.out_msgs[0].destination else None
+            event.out_msgs[0].destination.address.to_userfriendly()
+            if event.out_msgs[0].destination else None
         )
         source = (
-            transaction.out_msgs[0].source.address.to_userfriendly()
-            if transaction.out_msgs[0].source else None
+            event.out_msgs[0].source.address.to_userfriendly()
+            if event.out_msgs[0].source else None
         )
         comment = (
-            transaction.out_msgs[0].decoded_body.get("text")
-            if transaction.out_msgs[0].decoded_op_name == "text_comment" else None
+            event.out_msgs[0].decoded_body.get("text")
+            if event.out_msgs[0].decoded_op_name == "text_comment" else None
         )
-        amount = nano_to_amount(transaction.out_msgs[0].value, 8)
+        amount = nano_to_amount(event.out_msgs[0].value, 8)
     else:
         action = "Received TON"
         destination = (
-            transaction.in_msg.destination.address.to_userfriendly()
-            if transaction.in_msg.destination else None
+            event.in_msg.destination.address.to_userfriendly()
+            if event.in_msg.destination else None
         )
         source = (
-            transaction.in_msg.source.address.to_userfriendly()
-            if transaction.in_msg.source else None
+            event.in_msg.source.address.to_userfriendly()
+            if event.in_msg.source else None
         )
         comment = (
-            transaction.in_msg.decoded_body.get("text")
-            if transaction.in_msg.decoded_op_name == "text_comment" else None
+            event.in_msg.decoded_body.get("text")
+            if event.in_msg.decoded_op_name == "text_comment" else None
         )
-        amount = nano_to_amount(transaction.in_msg.value, 8)
+        amount = nano_to_amount(event.in_msg.value, 8)
 
     text += (
         f"• {hbold('Action:')}\n"
@@ -252,6 +282,6 @@ def contract_transaction(transaction: Transaction):
     )
     text += (
         f"• {hbold('Hash:')}\n"
-        f"{hcode(transaction.hash)}"
+        f"{hcode(event.hash)}"
     )
     return text

@@ -1,16 +1,25 @@
+import calendar
+from datetime import datetime
+
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram.utils.exceptions import MessageIsTooLong
+from pytonapi import AsyncTonapi
+from pytonapi.schema.accounts import Account
+from pytonapi.schema.events import AccountEvents
 
 from app.bot.filters import IsPrivate
 from app.bot.handlers import windows
 from app.bot.keyboards import callback_data
+from app.bot.keyboards.inline import InlineKeyboardCalendar
+from app.bot.middlewares.throttling import ThrottlingContext, EMOJIS_MAGNIFIER, rate_limit
 from app.bot.states import State
 from app.bot.texts import messages
 from app.bot.exceptions import BadRequestMessageIsTooLong
 
 
+@rate_limit(1)
 async def main(call: CallbackQuery, state: FSMContext, chat_id, message_id) -> None:
     match call.data:
         case callback_data.go_main:
@@ -25,12 +34,12 @@ async def main(call: CallbackQuery, state: FSMContext, chat_id, message_id) -> N
             await state.update_data(testnet=testnet)
             await windows.main(
                 bot=call.bot, state=state,
-                chat_id=chat_id, message_id=message_id
+                chat_id=chat_id, message_id=message_id,
             )
         case callback_data.set_api_key:
             await windows.set_api_key(
                 bot=call.bot, state=state,
-                chat_id=chat_id, message_id=message_id
+                chat_id=chat_id, message_id=message_id,
             )
         case callback_data.del_api_key:
             async with state.proxy() as data:
@@ -45,21 +54,41 @@ async def main(call: CallbackQuery, state: FSMContext, chat_id, message_id) -> N
     await call.answer()
 
 
+@rate_limit(1)
 async def set_api_key(call: CallbackQuery, state: FSMContext, chat_id, message_id) -> None:
     match call.data:
         case callback_data.back:
             await windows.main(
                 bot=call.bot, state=state,
-                chat_id=chat_id, message_id=message_id
+                chat_id=chat_id, message_id=message_id,
             )
 
     await call.answer()
 
 
-async def contract(call: CallbackQuery, state: FSMContext, chat_id, message_id) -> None:
+@rate_limit(1)
+async def contract(call: CallbackQuery, state: FSMContext, tonapi: AsyncTonapi, chat_id, message_id) -> None:
+    data = await state.get_data()
+
     match call.data:
         case callback_data.go_main:
             await windows.main(
+                bot=call.bot, state=state,
+                chat_id=chat_id, message_id=message_id,
+            )
+        case callback_data.events:
+            async with ThrottlingContext(bot=call.bot, state=state,
+                                         chat_id=chat_id, message_id=message_id,
+                                         emojis=EMOJIS_MAGNIFIER):
+                account: Account = Account(**data["account"])
+                events = await tonapi.accounts.get_events(
+                    account_id=account.address.to_userfriendly(), limit=10,
+                )
+                await state.update_data(
+                    page=1, total_pages=1, events=events.dict()
+                )
+
+            await windows.events_page(
                 bot=call.bot, state=state,
                 chat_id=chat_id, message_id=message_id,
             )
@@ -67,7 +96,7 @@ async def contract(call: CallbackQuery, state: FSMContext, chat_id, message_id) 
             try:
                 await windows.detail_attributes(
                     bot=call.bot, state=state,
-                    chat_id=chat_id, message_id=message_id
+                    chat_id=chat_id, message_id=message_id,
                 )
             except KeyError:
                 text = messages.call__attributes_not_found
@@ -80,15 +109,126 @@ async def contract(call: CallbackQuery, state: FSMContext, chat_id, message_id) 
             try:
                 await windows.detail_metadata(
                     bot=call.bot, state=state,
-                    chat_id=chat_id, message_id=message_id
+                    chat_id=chat_id, message_id=message_id,
                 )
             except (MessageIsTooLong, BadRequestMessageIsTooLong):
                 text = messages.call__metadata_too_long
                 await call.answer(text, show_alert=True)
 
+    await call.answer()
+
+
+@rate_limit(0.5)
+async def details(call: CallbackQuery, state: FSMContext, tonapi: AsyncTonapi, chat_id, message_id) -> None:
+    data = await state.get_data()
+
+    match call.data:
+        case callback_data.back:
+            await state.update_data(page=1, total_pages=1)
+
+            match data["contract_type"]:
+                case "jetton":
+                    await windows.information_jetton(
+                        bot=call.bot, state=state,
+                        chat_id=chat_id, message_id=message_id,
+                    )
+                case "nft":
+                    await windows.information_nft(
+                        bot=call.bot, state=state,
+                        chat_id=chat_id, message_id=message_id,
+                    )
+                case "collection":
+                    await windows.information_collection(
+                        bot=call.bot, state=state,
+                        chat_id=chat_id, message_id=message_id,
+                    )
+                case "account":
+                    await windows.information(
+                        bot=call.bot, state=state,
+                        chat_id=chat_id, message_id=message_id,
+                    )
+
+        case cdata if cdata in [callback_data.export_as_csv, callback_data.export_as_json]:
+            if not data.get("tonapi_key", None):
+                text = messages.call__need_api_key
+                await call.answer(text, show_alert=True)
+            else:
+                await state.update_data(
+                    start_date=None, end_date=None, export_type=cdata
+                )
+                await windows.select_date(
+                    bot=call.bot, state=state,
+                    chat_id=chat_id, message_id=message_id,
+                )
+
+        case event_id if len(event_id) == 64:
+            async with ThrottlingContext(bot=call.bot, state=state,
+                                         chat_id=chat_id, message_id=message_id,
+                                         emojis=EMOJIS_MAGNIFIER):
+                event = await tonapi.blockchain.get_transaction_data(
+                    transaction_id=event_id
+                )
+                await state.update_data(from_pages=True, event=event.dict())
+                await windows.information_event(
+                    bot=call.bot, state=state,
+                    chat_id=chat_id, message_id=message_id,
+                )
+
+        case page if call.data.startswith("page"):
+
+            account: Account = Account(**data["account"])
+            events: AccountEvents = AccountEvents(**data["events"])
+
+            page = int(page.split(":")[1])
+            current_page = data.get("page", 1)
+            total_pages = int((len(events.events)) / 10)
+
+            if page == current_page:
+                await call.answer()
+                return
+
+            if page > total_pages:
+                async with ThrottlingContext(bot=call.bot, state=state,
+                                             chat_id=chat_id, message_id=message_id,
+                                             emojis=EMOJIS_MAGNIFIER):
+                    search: AccountEvents = await tonapi.accounts.get_events(
+                        account_id=account.address.to_userfriendly(),
+                        limit=10, before_lt=events.events[-1].lt,
+                    )
+                    events.events += search.events
+                    total_pages += 1
+
+            await state.update_data(
+                page=page, total_pages=total_pages, events=events.dict()
+            )
+            await windows.events_page(
+                bot=call.bot, state=state,
+                chat_id=chat_id, message_id=message_id,
+            )
+
+    await call.answer()
+
+
+@rate_limit(1)
+async def information_event(call: CallbackQuery, state: FSMContext, chat_id, message_id) -> None:
+    data = await state.get_data()
+
+    match call.data:
+        case callback_data.back:
+            from_pages = data.get("from_pages", False)
+            if from_pages:
+                await windows.events_page(
+                    bot=call.bot, state=state,
+                    chat_id=chat_id, message_id=message_id,
+                )
+            else:
+                await windows.main(
+                    bot=call.bot, state=state,
+                    chat_id=chat_id, message_id=message_id,
+                )
         case callback_data.show_json:
             try:
-                await windows.detail_json(
+                await windows.information_event_json(
                     bot=call.bot, state=state,
                     chat_id=chat_id, message_id=message_id,
                 )
@@ -99,32 +239,139 @@ async def contract(call: CallbackQuery, state: FSMContext, chat_id, message_id) 
     await call.answer()
 
 
-async def details(call: CallbackQuery, state: FSMContext, chat_id, message_id) -> None:
+@rate_limit(1)
+async def information_event_json(call: CallbackQuery, state: FSMContext, chat_id, message_id) -> None:
+    match call.data:
+        case callback_data.back:
+            await windows.information_event(
+                bot=call.bot, state=state,
+                chat_id=chat_id, message_id=message_id,
+            )
+
+    await call.answer()
+
+
+@rate_limit(0.5)
+async def select_date(call: CallbackQuery, state: FSMContext, chat_id, message_id) -> None:
+    data = await state.get_data()
+
+    current_date = datetime.now()
+
+    start_date = data.get("start_date", None)
+    end_date = data.get("end_date", None)
+    date = data.get("date", current_date.timestamp())
+
+    date = datetime.fromtimestamp(date)
+    start_date = datetime.fromtimestamp(start_date) if start_date else None
+    end_date = datetime.fromtimestamp(end_date) if end_date else None
+
+    match call.data:
+        case InlineKeyboardCalendar.cb_back:
+            await windows.events_page(
+                bot=call.bot, state=state,
+                chat_id=chat_id, message_id=message_id,
+            )
+
+        case InlineKeyboardCalendar.cb_next:
+            await windows.confirm_export(
+                bot=call.bot, state=state,
+                chat_id=chat_id, message_id=message_id,
+            )
+
+        case cdata if cdata.startswith(InlineKeyboardCalendar.cb_year):
+            if cdata == InlineKeyboardCalendar.cb_year:
+                if start_date and end_date:
+                    start_date, end_date = None, None
+                else:
+                    start_date = date.replace(month=1, day=1, hour=0, minute=0, second=0).timestamp()
+                    last_day = calendar.monthrange(date.year, date.month)[1]
+                    end_date = date.replace(month=12, day=last_day, hour=23, minute=59, second=59).timestamp()
+                await state.update_data(
+                    start_date=start_date, end_date=end_date
+                )
+                await windows.select_date(
+                    bot=call.bot, state=state,
+                    chat_id=chat_id, message_id=message_id,
+                )
+            else:
+                match call.data.split(":")[1]:
+                    case InlineKeyboardCalendar.cb_left:
+                        date = date.replace(year=date.year - 1)
+                    case InlineKeyboardCalendar.cb_right:
+                        date = date.replace(year=date.year + 1)
+
+                if date <= current_date:
+                    await state.update_data(date=date.timestamp())
+                    await windows.select_date(
+                        bot=call.bot, state=state,
+                        chat_id=chat_id, message_id=message_id,
+                    )
+
+        case cdata if cdata.startswith(InlineKeyboardCalendar.cb_month):
+            if cdata == InlineKeyboardCalendar.cb_month:
+                if start_date and end_date:
+                    start_date, end_date = None, None
+                else:
+                    start_date = date.replace(day=1, hour=0, minute=0, second=0).timestamp()
+                    last_day = calendar.monthrange(date.year, date.month)[1]
+                    end_date = date.replace(day=last_day, hour=23, minute=59, second=59).timestamp()
+                await state.update_data(
+                    start_date=start_date, end_date=end_date
+                )
+                await windows.select_date(
+                    bot=call.bot, state=state,
+                    chat_id=chat_id, message_id=message_id,
+                )
+            else:
+                match call.data.split(":")[1]:
+                    case InlineKeyboardCalendar.cb_left:
+                        month = date.month - 1 if date.month > 1 else date.month
+                    case _:
+                        month = date.month + 1 if date.month < 12 else date.month
+                date = date.replace(month=month)
+
+                if date <= current_date:
+                    await state.update_data(date=date.timestamp())
+                    await windows.select_date(
+                        bot=call.bot, state=state,
+                        chat_id=chat_id, message_id=message_id,
+                    )
+
+        case cdata if cdata.startswith(InlineKeyboardCalendar.cb_day):
+            day = int(call.data.split(":")[1])
+            if date <= current_date:
+                if start_date and end_date:
+                    start_date, end_date = None, None
+                elif not start_date:
+                    start_date, end_date = date.replace(day=day, hour=0, minute=0, second=0).timestamp(), None
+                else:
+                    start_date = start_date.timestamp()
+                    end_date = date.replace(day=day, hour=23, minute=59, second=59).timestamp()
+                    if start_date > end_date:
+                        start_date, end_date = None, None
+                await state.update_data(
+                    start_date=start_date, end_date=end_date, date=date.timestamp(),
+                )
+                await windows.select_date(
+                    bot=call.bot, state=state,
+                    chat_id=chat_id, message_id=message_id,
+                )
+
+    await call.answer()
+
+
+@rate_limit(1)
+async def confirm_export(call: CallbackQuery, state: FSMContext, chat_id, message_id) -> None:
     data = await state.get_data()
 
     match call.data:
         case callback_data.back:
-            match data["contract_type"]:
-                case "jetton":
-                    await windows.information_jetton(
-                        bot=call.bot, state=state,
-                        chat_id=chat_id, message_id=message_id
-                    )
-                case "nft":
-                    await windows.information_nft(
-                        bot=call.bot, state=state,
-                        chat_id=chat_id, message_id=message_id
-                    )
-                case "collection":
-                    await windows.information_collection(
-                        bot=call.bot, state=state,
-                        chat_id=chat_id, message_id=message_id
-                    )
-                case "account":
-                    await windows.information(
-                        bot=call.bot, state=state,
-                        chat_id=chat_id, message_id=message_id
-                    )
+            await windows.select_date(
+                bot=call.bot, state=state,
+                chat_id=chat_id, message_id=message_id,
+            )
+        case callback_data.confirm:
+            ...
 
     await call.answer()
 
@@ -141,6 +388,22 @@ def register(dp: Dispatcher) -> None:
     dp.register_callback_query_handler(
         details, IsPrivate(),
         state=State.detail,
+    )
+    dp.register_callback_query_handler(
+        information_event, IsPrivate(),
+        state=State.information_event,
+    )
+    dp.register_callback_query_handler(
+        information_event_json, IsPrivate(),
+        state=State.information_event_json,
+    )
+    dp.register_callback_query_handler(
+        select_date, IsPrivate(),
+        state=State.select_date,
+    )
+    dp.register_callback_query_handler(
+        confirm_export, IsPrivate(),
+        state=State.confirm_export,
     )
     dp.register_callback_query_handler(
         main, IsPrivate(),

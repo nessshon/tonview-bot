@@ -11,7 +11,7 @@ from app.bot.texts import articles
 async def inline_handler(inline: InlineQuery, tonapi: AsyncTonapi):
     try:
         match inline.query:
-            case query if query.startswith("transactions"):
+            case query if query.startswith("events"):
                 offset = inline.offset or 0
                 account_id = query.split(" ")[1]
 
@@ -30,7 +30,7 @@ async def inline_handler(inline: InlineQuery, tonapi: AsyncTonapi):
                         for nft in search.nft_items if nft.address.to_raw() == nft_address
                     ]
 
-                results = [articles.create_transaction(item) for item in items.events]
+                results = [articles.create_event_article(item) for item in items.events]
                 if results:
                     next_offset = str(items.events[-1].lt)
                     await inline.answer(

@@ -108,13 +108,15 @@ async def error_handler(update: Update, exception: Exception) -> bool:
             sort_keys=True,
             indent=1,
         )
-        await update.bot.send_message(
-            chat_id=config.bot.DEV_ID,
-            text=text.format(
-                update=hcode(update_json),
-                exception=hbold(exception),
+
+        with suppress(MessageIsTooLong):
+            await update.bot.send_message(
+                chat_id=config.bot.DEV_ID,
+                text=text.format(
+                    update=hcode(update_json),
+                    exception=hbold(exception),
+                )
             )
-        )
 
     logging.exception(f'Update: {update} \n{exception}')
     return True

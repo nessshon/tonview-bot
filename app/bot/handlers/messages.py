@@ -9,12 +9,13 @@ from pytonapi.exceptions import TONAPIUnauthorizedError, TONAPITooManyRequestsEr
 from app.bot.filters import IsPrivate
 from app.bot.handlers import windows
 from app.bot.keyboards import inline
-from app.bot.middlewares.throttling import ThrottlingContext, EMOJIS_MAGNIFIER
+from app.bot.middlewares.throttling import ThrottlingContext, EMOJIS_MAGNIFIER, rate_limit
 from app.bot.states import State
 from app.bot.texts import messages
 from app.bot.utils.message import delete_message, edit_or_send_message
 
 
+@rate_limit(2)
 async def main(message: Message, state: FSMContext, tonapi: AsyncTonapi, chat_id, message_id):
     if message.text:
         try:
@@ -34,6 +35,15 @@ async def main(message: Message, state: FSMContext, tonapi: AsyncTonapi, chat_id
                     account = await tonapi.accounts.get_info(account_id)
 
                     match account.interfaces:
+                        case None:
+                            await state.update_data(
+                                contract_type="account",
+                                account=account.dict(),
+                            )
+                            await windows.information(
+                                bot=message.bot, state=state,
+                                chat_id=chat_id, message_id=message_id,
+                            )
                         case interfaces if "tep74" in interfaces:
                             jetton = await tonapi.jettons.get_info(account_id)
                             await state.update_data(
@@ -76,8 +86,8 @@ async def main(message: Message, state: FSMContext, tonapi: AsyncTonapi, chat_id
                             )
                 else:
                     trace = await tonapi.blockchain.get_transaction_data(transaction_id=message.text)
-                    await state.update_data(transaction=trace.dict())
-                    await windows.information_transaction(
+                    await state.update_data(from_pages=False, event=trace.dict())
+                    await windows.information_event(
                         bot=message.bot, state=state,
                         chat_id=chat_id, message_id=message_id,
                     )
@@ -88,8 +98,7 @@ async def main(message: Message, state: FSMContext, tonapi: AsyncTonapi, chat_id
         except TONAPITooManyRequestsError:
             raise TONAPITooManyRequestsError
 
-        except (Exception,) as e:
-            logging.error(e)
+        except (Exception,):
             text = messages.not_found
             markup = inline.go_main()
             await edit_or_send_message(
@@ -97,11 +106,14 @@ async def main(message: Message, state: FSMContext, tonapi: AsyncTonapi, chat_id
                 chat_id=chat_id, message_id=message_id,
                 text=text, markup=markup,
             )
+            await delete_message(message)
             await State.main.set()
+            raise
 
     await delete_message(message)
 
 
+@rate_limit(1)
 async def set_api_key(message: Message, state: FSMContext, chat_id, message_id):
     if message.text:
         try:
