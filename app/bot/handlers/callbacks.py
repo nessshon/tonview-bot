@@ -270,6 +270,7 @@ async def select_date(call: CallbackQuery, state: FSMContext, chat_id, message_i
 
     match call.data:
         case InlineKeyboardCalendar.cb_back:
+            await state.update_data(start_date=None, end_date=None)
             await windows.events_page(
                 bot=call.bot, state=state,
                 chat_id=chat_id, message_id=message_id,
@@ -375,7 +376,6 @@ async def confirm_export(call: CallbackQuery, state: FSMContext, tonapi: AsyncTo
             )
         case callback_data.confirm:
             try:
-
                 async with ThrottlingContext(bot=call.bot, state=state,
                                              chat_id=chat_id, message_id=message_id,
                                              emojis=EMOJIS_MAGNIFIER):
