@@ -130,28 +130,28 @@ async def contract_inline_query(inline_query: InlineQuery, tonapi: AsyncTonapi):
                 case None:
                     chl = f"ton://transfer/{account.address.to_userfriendly()}"
                     preview_url = f"https://chart.googleapis.com/chart?chs=512x512&cht=qr&chl={chl}"
-                    message_text = messages.information(account, preview_url)
+                    message_text = await messages.information(account, preview_url)
                     reply_markup = inline.information(account.address.to_userfriendly(), True)
 
                     return create_contract_article(account, message_text, reply_markup)
 
                 case interfaces if "tep74" in interfaces:
                     jetton = await tonapi.jettons.get_info(account_id)
-                    message_text = messages.information_jetton(account, jetton)
+                    message_text = await messages.information_jetton(account, jetton)
                     reply_markup = inline.information_jetton(account.address.to_userfriendly(), True)
 
                     return create_contract_article(account, message_text, reply_markup)
 
                 case interfaces if "tep62_item" in interfaces:
                     nft = await tonapi.nft.get_item_by_address(account_id)
-                    message_text = messages.information_nft(account, nft)
+                    message_text = await messages.information_nft(account, nft)
                     reply_markup = inline.information_nft(account.address.to_userfriendly(), True)
 
                     return create_contract_article(account, message_text, reply_markup)
 
                 case interfaces if "tep62_collection" in interfaces:
                     collection = await tonapi.nft.get_collection_by_collection_address(account_id)
-                    message_text = messages.information_collection(account, collection)
+                    message_text = await messages.information_collection(account, collection)
                     reply_markup = inline.information_collection(account.address.to_userfriendly(), True)
 
                     return create_contract_article(account, message_text, reply_markup)
@@ -168,7 +168,7 @@ async def contract_inline_query(inline_query: InlineQuery, tonapi: AsyncTonapi):
                     if account_id:
                         chl = f"ton://transfer/{account.address.to_userfriendly()}"
                         preview_url = f"https://chart.googleapis.com/chart?chs=512x512&cht=qr&chl={chl}"
-                        message_text = messages.information(account, preview_url)
+                        message_text = await messages.information(account, preview_url)
                         reply_markup = inline.information(account.address.to_userfriendly(), True)
 
                         return create_contract_article(account, message_text, reply_markup)

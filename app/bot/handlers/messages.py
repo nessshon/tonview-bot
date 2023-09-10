@@ -1,10 +1,8 @@
-import logging
-
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message
 from pytonapi import AsyncTonapi
-from pytonapi.exceptions import TONAPIUnauthorizedError, TONAPITooManyRequestsError, TONAPIBadRequestError
+from pytonapi.exceptions import TONAPIUnauthorizedError, TONAPITooManyRequestsError
 
 from app.bot.filters import IsPrivate
 from app.bot.handlers import windows
@@ -12,7 +10,7 @@ from app.bot.keyboards import inline
 from app.bot.middlewares.throttling import ThrottlingContext, EMOJIS_MAGNIFIER, rate_limit
 from app.bot.states import State
 from app.bot.texts import messages
-from app.bot.utils.encrypt import encrypt_key
+from app.bot.utils.crypto import encrypt_key
 from app.bot.utils.message import delete_message, edit_or_send_message
 from app.config import Config
 

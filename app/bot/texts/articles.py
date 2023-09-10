@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 
 from aiogram.types import InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardMarkup
 from pytonapi.schema.accounts import Account

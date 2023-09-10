@@ -8,6 +8,7 @@ from pytonapi.schema.traces import Transaction
 from pytonapi.utils import nano_to_amount
 
 from app.bot.utils.links import GetgemsLink
+from app.bot.utils.coingecko import Coingecko
 
 main = (
     f"{hide_link('https://telegra.ph//file/1e7bbb0756d2bf7ba926a.jpg')}"
@@ -141,27 +142,32 @@ export_failed = (
 )
 
 
-def information(account: Account, preview: str) -> str:
+async def information(account: Account, preview: str) -> str:
+    price = (await Coingecko().get()).ton.usd
+
+    amount = account.balance.to_amount(8)
+    address = account.address.to_userfriendly()
+
     return (
         f"{hide_link(preview)}"
         f"{hide_link('https://telegra.ph//file/784afcdf40bff1e0f06f9.jpg')}"
         f"• {hbold('Status:')}\n"
         f"{hcode(account.status)}\n\n"
-        f"• {hbold('Balance:')}\n"
-        f"{hcode(f'{account.balance.to_amount(8):,.8f}')} TON\n\n"
-        f"• {hbold('Contract type:')}\n"
-        f"{hcode(', '.join(i for i in account.interfaces) if account.interfaces else 'Unknown')}\n\n"
-        f"• {hbold('Address:')}\n"
-        f"{hcode(account.address.to_userfriendly())}\n\n"
+        f"• {hlink('Balance', url='https://www.coingecko.com/en/coins/toncoin')}:\n"
+        f"{amount:,.6f} TON {hcode(f'≈ ${round(amount * price, 2):,.2f}')}\n\n"
+        f"• {hlink('Address', url='https://tonviewer.com/' + address)}:\n"
+        f"{hcode(address)}\n\n"
         f"• {hbold('Raw:')}\n"
         f"{hcode(account.address.to_raw())}\n\n"
+        f"• {hbold('Contract type:')}\n"
+        f"{hcode(', '.join(i for i in account.interfaces) if account.interfaces else 'Unknown')}\n\n"
     )
 
 
-def information_jetton(account: Account, jetton: JettonInfo) -> str:
+async def information_jetton(account: Account, jetton: JettonInfo) -> str:
     preview = jetton.metadata.image if jetton.metadata.image else "https://telegra.ph//file/784afcdf40bff1e0f06f9.jpg"
     preview = f"https://ipfs.io/ipfs/{preview}" if preview.startswith("ipfs://") else preview
-    text = information(account, preview)
+    text = await information(account, preview)
     total_supply = round(int(jetton.total_supply) / 10 ** int(jetton.metadata.decimals), 4)
 
     description = (
@@ -185,9 +191,9 @@ def information_jetton(account: Account, jetton: JettonInfo) -> str:
     return text
 
 
-def information_nft(account: Account, nft: NftItem) -> str:
+async def information_nft(account: Account, nft: NftItem) -> str:
     preview = nft.previews[-1].url if len(nft.previews) > 1 else "https://telegra.ph//file/784afcdf40bff1e0f06f9.jpg"
-    text = information(account, preview)
+    text = await information(account, preview)
 
     name = nft.dns if nft.dns else nft.metadata["name"] if "name" in nft.metadata else "Unknown"
     if name != "Unknown": name = GetgemsLink.nft(name, nft.address.to_userfriendly())  # noqa:E701
@@ -217,12 +223,12 @@ def information_nft(account: Account, nft: NftItem) -> str:
     return text
 
 
-def information_collection(account: Account, collection: NftCollection) -> str:
+async def information_collection(account: Account, collection: NftCollection) -> str:
     preview = (
         collection.previews[-1].url if any(collection.previews)
         else "https://telegra.ph//file/784afcdf40bff1e0f06f9.jpg"
     )
-    text = information(account, preview)
+    text = await information(account, preview)
 
     name = collection.metadata["name"] if "name" in collection.metadata else "Unknown"
     if name != "Unknown": name = GetgemsLink.collection(name, collection.address.to_userfriendly())  # noqa:E701
@@ -248,7 +254,7 @@ def information_collection(account: Account, collection: NftCollection) -> str:
     return text
 
 
-def contract_event(event: Transaction):
+async def contract_event(event: Transaction):
     text = (
         f"• {hbold('Timestamp:')}\n"
         f"{hcode(datetime.fromtimestamp(event.utime).strftime('%d.%m.%Y, %H:%M:%S'))}\n\n"

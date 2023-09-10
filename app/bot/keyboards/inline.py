@@ -124,13 +124,11 @@ def information_jetton(account_id: str, from_inline: bool = False) -> InlineKeyb
             text=buttons.events, switch_inline_query_current_chat=f"{callback_data.events} {account_id}",
         )
     )
-    markup.add(
-        InlineKeyboardButton(
-            text=buttons.holders, switch_inline_query_current_chat=f"{callback_data.holders} {account_id}",
-        ),
-    )
     if not from_inline:
         markup.add(
+            InlineKeyboardButton(
+                text=buttons.holders, switch_inline_query_current_chat=f"{callback_data.holders} {account_id}",
+            ),
             InlineKeyboardButton(
                 text=buttons.metadata, callback_data=callback_data.metadata,
             ),
@@ -138,6 +136,12 @@ def information_jetton(account_id: str, from_inline: bool = False) -> InlineKeyb
         markup.row(
             InlineKeyboardButton(
                 text=buttons.go_main, callback_data=callback_data.go_main,
+            )
+        )
+    else:
+        markup.add(
+            InlineKeyboardButton(
+                text=buttons.holders, switch_inline_query_current_chat=f"{callback_data.holders} {account_id}",
             )
         )
 

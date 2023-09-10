@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
@@ -12,6 +13,11 @@ from aiogram.utils.exceptions import Unauthorized
 async def on_startup(dp: Dispatcher) -> None:
     from .config import Config
     config: Config = dp.bot["config"]
+
+    from .bot.utils.coingecko import Coingecko
+    asyncio.create_task(
+        Coingecko().run_updates()
+    )
 
     from .db.database import Database
     db = Database(config.db)

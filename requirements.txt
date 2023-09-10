@@ -7,3 +7,5 @@ cryptography==41.0.3
 pytonapi==0.1.1
 aiofiles~=23.2.1
 aiocsv~=1.2.4
+aiohttp~=3.8.5
+pydantic~=2.3.0

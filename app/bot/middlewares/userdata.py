@@ -5,7 +5,7 @@ from aiogram.dispatcher.middlewares import LifetimeControllerMiddleware
 from cryptography.fernet import InvalidToken
 from pytonapi import AsyncTonapi
 
-from app.bot.utils.encrypt import decrypt_key
+from app.bot.utils.crypto import decrypt_key
 from app.db.database import Database
 
 

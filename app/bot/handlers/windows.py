@@ -76,7 +76,7 @@ async def information(bot: Bot, state: FSMContext, chat_id: int, message_id: int
     chl = f"ton://transfer/{account.address.to_userfriendly()}"
     preview_url = f"https://chart.googleapis.com/chart?chs=512x512&cht=qr&chl={chl}"
 
-    text = messages.information(account, preview_url)
+    text = await messages.information(account, preview_url)
     markup = inline.information(account.address.to_userfriendly())
 
     await edit_or_send_message(
@@ -94,7 +94,7 @@ async def information_jetton(bot: Bot, state: FSMContext, chat_id: int, message_
     jetton: JettonInfo = JettonInfo(**data["jetton"])
 
     markup = inline.information_jetton(account.address.to_userfriendly())
-    text = messages.information_jetton(account, jetton)
+    text = await messages.information_jetton(account, jetton)
 
     await edit_or_send_message(
         bot=bot, state=state,
@@ -111,7 +111,7 @@ async def information_nft(bot: Bot, state: FSMContext, chat_id: int, message_id:
     nft: NftItem = NftItem(**data["nft"])
 
     markup = inline.information_nft(account.address.to_userfriendly())
-    text = messages.information_nft(account, nft)
+    text = await messages.information_nft(account, nft)
 
     await edit_or_send_message(
         bot=bot, state=state,
@@ -128,7 +128,7 @@ async def information_collection(bot: Bot, state: FSMContext, chat_id: int, mess
     collection: NftCollection = NftCollection(**data["collection"])
 
     markup = inline.information_collection(account.address.to_userfriendly())
-    text = messages.information_collection(account, collection)
+    text = await messages.information_collection(account, collection)
 
     await edit_or_send_message(
         bot=bot, state=state,
@@ -144,7 +144,7 @@ async def information_event(bot: Bot, state: FSMContext, chat_id: int, message_i
     event: Transaction = Transaction(**data["event"])
 
     markup = inline.information_event()
-    text = messages.contract_event(event)
+    text = await messages.contract_event(event)
 
     await edit_or_send_message(
         bot=bot, state=state,
