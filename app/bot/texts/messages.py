@@ -7,6 +7,7 @@ from pytonapi.schema.nft import NftItem, NftCollection
 from pytonapi.schema.traces import Transaction
 from pytonapi.utils import nano_to_amount
 
+from app.bot.utils.address import AddressDisplay
 from app.bot.utils.links import GetgemsLink
 from app.bot.utils.coingecko import Coingecko
 
@@ -146,7 +147,6 @@ async def information(account: Account, preview: str) -> str:
     price = (await Coingecko().get()).ton.usd
 
     amount = account.balance.to_amount(8)
-    address = account.address.to_userfriendly()
 
     return (
         f"{hide_link(preview)}"
@@ -155,8 +155,8 @@ async def information(account: Account, preview: str) -> str:
         f"{hcode(account.status)}\n\n"
         f"• {hlink('Balance', url='https://www.coingecko.com/en/coins/toncoin')}:\n"
         f"{amount:,.6f} TON {hcode(f'≈ ${round(amount * price, 2):,.2f}')}\n\n"
-        f"• {hlink('Address', url='https://tonviewer.com/' + address)}:\n"
-        f"{hcode(address)}\n\n"
+        f"• {hlink('Account', url='https://tonviewer.com/' + account.address.to_userfriendly())}:\n"
+        f"{hcode(AddressDisplay(account).title())}\n\n"
         f"• {hbold('Raw:')}\n"
         f"{hcode(account.address.to_raw())}\n\n"
         f"• {hbold('Contract type:')}\n"
