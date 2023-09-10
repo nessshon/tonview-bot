@@ -1,6 +1,5 @@
 import json
-import math
-from datetime import datetime
+import datetime
 
 from aiogram import Bot
 from aiogram.dispatcher import FSMContext
@@ -248,14 +247,14 @@ async def events_page(bot: Bot, state: FSMContext, chat_id: int, message_id: int
 async def select_date(bot: Bot, state: FSMContext, chat_id: int, message_id: int) -> None:
     data = await state.get_data()
 
-    date = data.get("date", datetime.now().timestamp())
+    date = data.get("date", datetime.datetime.now().timestamp())
     start_date = data.get("start_date", None)
     end_date = data.get("end_date", None)
 
     text = messages.select_date.format(
-        start_date=datetime.fromtimestamp(start_date).strftime("%Y-%m-%d %H:%M:%S")
+        start_date=datetime.datetime.fromtimestamp(start_date).strftime("%Y-%m-%d %H:%M:%S")
         if start_date else "Select start date",
-        end_date=datetime.fromtimestamp(end_date).strftime("%Y-%m-%d %H:%M:%S")
+        end_date=datetime.datetime.fromtimestamp(end_date).strftime("%Y-%m-%d %H:%M:%S")
         if end_date else "Select end date"
     )
     keyboard = InlineKeyboardCalendar(
@@ -279,9 +278,9 @@ async def confirm_export(bot: Bot, state: FSMContext, chat_id: int, message_id: 
     end_date = data.get("end_date")
 
     text = messages.confirm_export.format(
-        start_date=datetime.fromtimestamp(start_date).strftime("%Y-%m-%d %H:%M")
+        start_date=datetime.datetime.fromtimestamp(start_date).strftime("%Y-%m-%d %H:%M")
         if start_date else "Select start date",
-        end_date=datetime.fromtimestamp(end_date).strftime("%Y-%m-%d %H:%M")
+        end_date=datetime.datetime.fromtimestamp(end_date).strftime("%Y-%m-%d %H:%M")
         if end_date else "Select end date",
         export_type=getattr(buttons, data.get("export_type")),
     )

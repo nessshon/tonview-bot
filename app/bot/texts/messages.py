@@ -12,7 +12,7 @@ from app.bot.utils.links import GetgemsLink
 main = (
     f"{hide_link('https://telegra.ph//file/1e7bbb0756d2bf7ba926a.jpg')}"
     f"{hlink(title='Tonviewer', url='https://tonviewer.com/')} <b>— the only explorer you need for TON</b>\n\n"
-    "Search by address, name or transaction:"
+    "Send address, name or transaction:"
 )
 
 call__switched_to_testnet = (
@@ -32,7 +32,7 @@ call__switched_to_mainnet = (
 switched_to_mainnet = (
     f"{hide_link('https://telegra.ph//file/9f577834cc7cd270ede04.jpg')}"
     "<b>Switched to Mainnet!\n\n</b>"
-    "Search by address, name or transaction:"
+    "Send address, name or transaction:"
 )
 
 set_api_key = (
@@ -50,25 +50,25 @@ call__api_key_removed = (
 )
 
 api_key_invalid__input = (
-    f"{hide_link('https://telegra.ph//file/39269417eea2853eb4f34.jpg')}"
+    f"{hide_link('https://telegra.ph//file/0842a6e201b9b2d182979.jpg')}"
     "<b>Invalid API key, send correct API key:</b>\n\n"
     "• Get an API key from tonconsole.com."
 )
 
 api_key_invalid__error = (
-    f"{hide_link('https://telegra.ph//file/39269417eea2853eb4f34.jpg')}"
+    f"{hide_link('https://telegra.ph//file/0842a6e201b9b2d182979.jpg')}"
     "<b>Invalid API key!</b>\n\n"
     "Send new API key or remove existing:\n\n"
     "• Get an API key from tonconsole.com."
 )
 too_many_requests__error = (
-    f"{hide_link('https://telegra.ph//file/bf0a404e1bf9a4efdeda9.jpg')}"
+    f"{hide_link('https://telegra.ph//file/da188a306888acb19f1ae.jpg')}"
     "<b>Rate limit exceeded!</b>\n\n"
     "• Please try again later, or set your API key."
 )
 
 not_found = (
-    f"{hide_link('https://telegra.ph//file/fa24c09522153e3b2273e.jpg')}"
+    f"{hide_link('https://telegra.ph//file/2e6bd84cd0ef81f879e5d.jpg')}"
     "<b>Sorry, didn't find any result!</b>\n\n"
     "Make sure your query is correct, that the correct network is selected, and search again."
 )
@@ -83,7 +83,7 @@ call__need_api_key = "To export you need to set your API key!"
 contract_events = (
     f"{hide_link('https://telegra.ph//file/466f2347ff0b174973902.jpg')}"
     "<b>Transactions history:</b>\n\n"
-    f"• {hbold('Address:')}\n"
+    f"• {hbold('Account:')}\n"
     "<code>{address}</code>"
 )
 
@@ -118,8 +118,8 @@ confirm_export = (
 )
 
 export_completed = (
-    "#ExportDetails\n\n"
-    f"• {hbold('Account address:')}\n"
+    "#Export\n\n"
+    f"• {hbold('Address:')}\n"
     f"{hcode('{address}')}\n\n"
     f"• {hbold('Start date:')}\n"
     f"{hcode('{start_date}')}\n\n"
@@ -218,7 +218,10 @@ def information_nft(account: Account, nft: NftItem) -> str:
 
 
 def information_collection(account: Account, collection: NftCollection) -> str:
-    preview = collection.metadata["image"] if "image" else "https://telegra.ph//file/784afcdf40bff1e0f06f9.jpg"
+    preview = (
+        collection.previews[-1].url if any(collection.previews)
+        else "https://telegra.ph//file/784afcdf40bff1e0f06f9.jpg"
+    )
     text = information(account, preview)
 
     name = collection.metadata["name"] if "name" in collection.metadata else "Unknown"

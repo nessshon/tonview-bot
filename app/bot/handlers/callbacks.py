@@ -1,6 +1,6 @@
 import asyncio
 import calendar
-from datetime import datetime, timedelta
+import datetime
 
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
@@ -258,15 +258,15 @@ async def information_event_json(call: CallbackQuery, state: FSMContext, chat_id
 async def select_date(call: CallbackQuery, state: FSMContext, chat_id, message_id) -> None:
     data = await state.get_data()
 
-    current_date = datetime.now()
+    current_date = datetime.datetime.now()
 
     start_date = data.get("start_date", None)
     end_date = data.get("end_date", None)
     date = data.get("date", current_date.timestamp())
 
-    date = datetime.fromtimestamp(date)
-    start_date = datetime.fromtimestamp(start_date) if start_date else None
-    end_date = datetime.fromtimestamp(end_date) if end_date else None
+    date = datetime.datetime.fromtimestamp(date)
+    start_date = datetime.datetime.fromtimestamp(start_date) if start_date else None
+    end_date = datetime.datetime.fromtimestamp(end_date) if end_date else None
 
     match call.data:
         case InlineKeyboardCalendar.cb_back:
@@ -382,19 +382,21 @@ async def confirm_export(call: CallbackQuery, state: FSMContext, tonapi: AsyncTo
                     account: Account = Account(**data["account"])
                     start_date = data.get("start_date", None)
                     end_date = data.get("end_date", None)
-                    before_lt = None
-                    start_export_date = datetime.now()
+
+                    next_from = None
+                    start_export_date = datetime.datetime.now()
                     events = AccountEvents(events=[], next_from=0)
 
                     while True:
                         search = await tonapi.accounts.get_events(
                             account_id=account.address.to_userfriendly(),
-                            start_data=start_date, end_data=end_date, limit=1000,
-                            before_lt=before_lt,
+                            start_date=int(str(start_date).split(".")[0]),
+                            end_date=int(str(end_date).split(".")[0]),
+                            before_lt=next_from, limit=1000,
                         )
-                        if len(search.events) == 0:
+                        if len(search.events) == 0 or search.next_from == 0:
                             break
-                        before_lt = search.events[-1].lt
+                        next_from = search.next_from
                         events.events += search.events
                         await asyncio.sleep(1)
 
@@ -404,15 +406,15 @@ async def confirm_export(call: CallbackQuery, state: FSMContext, tonapi: AsyncTo
                     else:
                         document = await export_manager.save_as_csv()
 
-                    end_export_date = datetime.now()
+                    end_export_date = datetime.datetime.now()
                     time_spent_seconds = (end_export_date - start_export_date).total_seconds()
-                    time_spent = str(timedelta(seconds=time_spent_seconds)).split(".")[0]
+                    time_spent = str(datetime.timedelta(seconds=time_spent_seconds)).split(".")[0]
 
                     caption = messages.export_completed.format(
                         address=account.address.to_userfriendly(),
-                        start_date=datetime.fromtimestamp(start_date).strftime("%Y-%m-%d %H:%M"),
-                        end_date=datetime.fromtimestamp(end_date).strftime("%Y-%m-%d %H:%M"),
-                        export_type=getattr(buttons, data["export_type"]),
+                        start_date=datetime.datetime.fromtimestamp(start_date).strftime("%Y-%m-%d %H:%M"),
+                        end_date=datetime.datetime.fromtimestamp(end_date).strftime("%Y-%m-%d %H:%M"),
+                        export_type=getattr(buttons, data["export_type"]).split(" ")[2],
                         total_rows=len(events.events),
                         time_spent=time_spent,
                     )

@@ -1,11 +1,30 @@
 from datetime import datetime
 
-from aiogram.types import InlineQueryResultArticle, InputTextMessageContent
+from aiogram.types import InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardMarkup
+from pytonapi.schema.accounts import Account
 from pytonapi.schema.events import AccountEvent
 from pytonapi.schema.jettons import JettonBalance, JettonHolder, JettonInfo
 from pytonapi.schema.nft import NftItem
 
 from app.bot.utils.address import AddressDisplay
+
+
+def create_contract_article(account: Account, message_text: str, reply_markup: InlineKeyboardMarkup
+                            ) -> InlineQueryResultArticle:
+    title = AddressDisplay(account).short()
+    description = (
+            f"• Interfaces: " +
+            f"{', '.join(i for i in account.interfaces) if account.interfaces else 'Unknown'}"
+    )
+    return InlineQueryResultArticle(
+        title=title,
+        id=account.address.to_userfriendly(),
+        description=description,
+        input_message_content=InputTextMessageContent(
+            message_text=message_text,
+        ),
+        reply_markup=reply_markup,
+    )
 
 
 def create_event_article(event: AccountEvent) -> InlineQueryResultArticle:

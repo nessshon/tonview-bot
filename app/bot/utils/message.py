@@ -4,7 +4,7 @@ from aiogram import Bot
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, InlineKeyboardMarkup
 from aiogram.utils.exceptions import (MessageCantBeDeleted, MessageToDeleteNotFound,
-                                      MessageToEditNotFound, MessageCantBeEdited, MessageNotModified)
+                                      MessageToEditNotFound, MessageCantBeEdited, MessageNotModified, BadRequest)
 
 
 async def delete_message(message: Message) -> None:
@@ -45,7 +45,7 @@ async def edit_or_send_message(bot: Bot, state: FSMContext,
             message_id=message_id, reply_markup=markup,
         )
 
-    except (MessageToEditNotFound, MessageCantBeEdited, MessageNotModified):
+    except (MessageToEditNotFound, MessageCantBeEdited, MessageNotModified, BadRequest):
         message = await bot.send_message(
             chat_id=chat_id, text=text, reply_markup=markup
         )

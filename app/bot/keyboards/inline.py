@@ -83,118 +83,126 @@ def set_api_key() -> InlineKeyboardMarkup:
     )
 
 
-def information(account_id: str) -> InlineKeyboardMarkup:
+def information(account_id: str, from_inline: bool = False) -> InlineKeyboardMarkup:
     markup = InlineKeyboardMarkup(row_width=2)
 
-    markup.row(
-        InlineKeyboardButton(
-            text=buttons.events,
-            callback_data=callback_data.events
+    if not from_inline:
+        markup.row(
+            InlineKeyboardButton(
+                text=buttons.events, callback_data=callback_data.events
+            )
         )
-    )
+    if from_inline:
+        markup.row(
+            InlineKeyboardButton(
+                text=buttons.events, switch_inline_query_current_chat=f"{callback_data.events} {account_id}"
+            )
+        )
     markup.add(
         InlineKeyboardButton(
-            text=buttons.tokens,
-            switch_inline_query_current_chat=f"{callback_data.tokens} {account_id}",
+            text=buttons.tokens, switch_inline_query_current_chat=f"{callback_data.tokens} {account_id}",
         ),
         InlineKeyboardButton(
-            text=buttons.collectibles,
-            switch_inline_query_current_chat=f"{callback_data.collectibles} {account_id}",
+            text=buttons.collectibles, switch_inline_query_current_chat=f"{callback_data.collectibles} {account_id}",
         ),
     )
-    markup.row(
-        InlineKeyboardButton(
-            text=buttons.go_main,
-            callback_data=callback_data.go_main,
+    if not from_inline:
+        markup.row(
+            InlineKeyboardButton(
+                text=buttons.go_main, callback_data=callback_data.go_main,
+            )
         )
-    )
 
     return markup
 
 
-def information_jetton(account_id: str) -> InlineKeyboardMarkup:
+def information_jetton(account_id: str, from_inline: bool = False) -> InlineKeyboardMarkup:
     markup = InlineKeyboardMarkup(row_width=2)
 
     markup.row(
         InlineKeyboardButton(
-            text=buttons.events,
-            switch_inline_query_current_chat=f"{callback_data.events} {account_id}",
+            text=buttons.events, switch_inline_query_current_chat=f"{callback_data.events} {account_id}",
         )
     )
     markup.add(
         InlineKeyboardButton(
-            text=buttons.holders,
-            switch_inline_query_current_chat=f"{callback_data.holders} {account_id}",
-        ),
-        InlineKeyboardButton(
-            text=buttons.metadata,
-            callback_data=callback_data.metadata,
+            text=buttons.holders, switch_inline_query_current_chat=f"{callback_data.holders} {account_id}",
         ),
     )
-    markup.row(
-        InlineKeyboardButton(
-            text=buttons.go_main,
-            callback_data=callback_data.go_main,
+    if not from_inline:
+        markup.add(
+            InlineKeyboardButton(
+                text=buttons.metadata, callback_data=callback_data.metadata,
+            ),
         )
-    )
+        markup.row(
+            InlineKeyboardButton(
+                text=buttons.go_main, callback_data=callback_data.go_main,
+            )
+        )
 
     return markup
 
 
-def information_nft(account_id: str) -> InlineKeyboardMarkup:
+def information_nft(account_id: str, from_inline: bool = False) -> InlineKeyboardMarkup:
     markup = InlineKeyboardMarkup(row_width=2)
 
     markup.row(
         InlineKeyboardButton(
-            text=buttons.events,
-            switch_inline_query_current_chat=f"{callback_data.events} {account_id}",
+            text=buttons.events, switch_inline_query_current_chat=f"{callback_data.events} {account_id}",
         )
     )
-    markup.add(
-        InlineKeyboardButton(
-            text=buttons.attributes,
-            callback_data=callback_data.attributes,
-        ),
-        InlineKeyboardButton(
-            text=buttons.metadata,
-            callback_data=callback_data.metadata,
-        ),
-    )
-    markup.row(
-        InlineKeyboardButton(
-            text=buttons.go_main,
-            callback_data=callback_data.go_main,
+    if not from_inline:
+        markup.add(
+            InlineKeyboardButton(
+                text=buttons.attributes, callback_data=callback_data.attributes,
+            ),
+            InlineKeyboardButton(
+                text=buttons.metadata, callback_data=callback_data.metadata,
+            ),
         )
-    )
+        markup.row(
+            InlineKeyboardButton(
+                text=buttons.go_main, callback_data=callback_data.go_main,
+            )
+        )
 
     return markup
 
 
-def information_collection(account_id: str) -> InlineKeyboardMarkup:
+def information_collection(account_id: str, from_inline: bool = False) -> InlineKeyboardMarkup:
     markup = InlineKeyboardMarkup(row_width=2)
 
-    markup.row(
-        InlineKeyboardButton(
-            text=buttons.events,
-            switch_inline_query_current_chat=f"{callback_data.events} {account_id}",
+    if from_inline:
+        markup.row(
+            InlineKeyboardButton(
+                text=buttons.events, switch_inline_query_current_chat=f"{callback_data.events} {account_id}",
+            ),
         )
-    )
-    markup.add(
-        InlineKeyboardButton(
-            text=buttons.items,
-            switch_inline_query_current_chat=f"{callback_data.items} {account_id}",
-        ),
-        InlineKeyboardButton(
-            text=buttons.metadata,
-            callback_data=callback_data.metadata,
-        ),
-    )
-    markup.row(
-        InlineKeyboardButton(
-            text=buttons.go_main,
-            callback_data=callback_data.go_main,
+        markup.row(
+            InlineKeyboardButton(
+                text=buttons.items, switch_inline_query_current_chat=f"{callback_data.items} {account_id}",
+            ),
         )
-    )
+    else:
+        markup.row(
+            InlineKeyboardButton(
+                text=buttons.events, switch_inline_query_current_chat=f"{callback_data.events} {account_id}",
+            ),
+        )
+        markup.add(
+            InlineKeyboardButton(
+                text=buttons.items, switch_inline_query_current_chat=f"{callback_data.items} {account_id}",
+            ),
+            InlineKeyboardButton(
+                text=buttons.metadata, callback_data=callback_data.metadata,
+            ),
+        )
+        markup.row(
+            InlineKeyboardButton(
+                text=buttons.go_main, callback_data=callback_data.go_main,
+            )
+        )
 
     return markup
 
@@ -204,14 +212,12 @@ def information_event() -> InlineKeyboardMarkup:
 
     markup.row(
         InlineKeyboardButton(
-            text=buttons.show_json,
-            callback_data=callback_data.show_json,
+            text=buttons.show_json, callback_data=callback_data.show_json,
         )
     )
     markup.row(
         InlineKeyboardButton(
-            text=buttons.back,
-            callback_data=callback_data.back,
+            text=buttons.back, callback_data=callback_data.back,
         )
     )
 

@@ -33,6 +33,7 @@ class DatabaseConfig:
 @dataclass
 class TonapiConfig:
     KEY: str
+    ENCRYPTION_KEY: str
 
 
 @dataclass
@@ -66,5 +67,6 @@ def load_config() -> Config:
         ),
         tonapi=TonapiConfig(
             KEY=env.str("TONAPI_KEY"),
+            ENCRYPTION_KEY=env.str("ENCRYPTION_KEY"),
         )
     )

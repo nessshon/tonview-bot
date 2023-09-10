@@ -4,7 +4,7 @@ from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message
 from pytonapi import AsyncTonapi
-from pytonapi.exceptions import TONAPIUnauthorizedError, TONAPITooManyRequestsError
+from pytonapi.exceptions import TONAPIUnauthorizedError, TONAPITooManyRequestsError, TONAPIBadRequestError
 
 from app.bot.filters import IsPrivate
 from app.bot.handlers import windows
@@ -12,7 +12,9 @@ from app.bot.keyboards import inline
 from app.bot.middlewares.throttling import ThrottlingContext, EMOJIS_MAGNIFIER, rate_limit
 from app.bot.states import State
 from app.bot.texts import messages
+from app.bot.utils.encrypt import encrypt_key
 from app.bot.utils.message import delete_message, edit_or_send_message
+from app.config import Config
 
 
 @rate_limit(2)
@@ -92,13 +94,10 @@ async def main(message: Message, state: FSMContext, tonapi: AsyncTonapi, chat_id
                         chat_id=chat_id, message_id=message_id,
                     )
 
-        except TONAPIUnauthorizedError:
-            raise TONAPIUnauthorizedError
+        except (TONAPIUnauthorizedError, TONAPITooManyRequestsError):
+            raise
 
-        except TONAPITooManyRequestsError:
-            raise TONAPITooManyRequestsError
-
-        except (Exception,):
+        except Exception as e:
             text = messages.not_found
             markup = inline.go_main()
             await edit_or_send_message(
@@ -108,7 +107,11 @@ async def main(message: Message, state: FSMContext, tonapi: AsyncTonapi, chat_id
             )
             await delete_message(message)
             await State.main.set()
-            raise
+
+            if "encoding/hex" in str(e):
+                pass
+            else:
+                raise
 
     await delete_message(message)
 
@@ -117,11 +120,16 @@ async def main(message: Message, state: FSMContext, tonapi: AsyncTonapi, chat_id
 async def set_api_key(message: Message, state: FSMContext, chat_id, message_id):
     if message.text:
         try:
+            config: Config = message.bot.get("config")
+
             async with ThrottlingContext(bot=message.bot, state=state,
                                          chat_id=chat_id, message_id=message_id):
                 tonapi = AsyncTonapi(message.text)
                 await tonapi.rates.get_prices(["TON"], ["USD"])
-                await state.update_data(tonapi_key=message.text)
+
+                tonapi_key = encrypt_key(config.tonapi.ENCRYPTION_KEY, message.text)
+                await state.update_data(tonapi_key=tonapi_key.decode())
+
                 await windows.main(
                     bot=message.bot, state=state,
                     chat_id=chat_id, message_id=message_id,
@@ -142,11 +150,16 @@ async def set_api_key(message: Message, state: FSMContext, chat_id, message_id):
 async def invalid_api_key(message: Message, state: FSMContext, chat_id, message_id):
     if message.text:
         try:
+            config: Config = message.bot.get("config")
+
             async with ThrottlingContext(bot=message.bot, state=state,
                                          chat_id=chat_id, message_id=message_id):
                 tonapi = AsyncTonapi(message.text)
                 await tonapi.rates.get_prices(tokens=["TON"], currencies=["USD"])
-                await state.update_data(tonapi_key=message.text)
+
+                tonapi_key = encrypt_key(config.tonapi.ENCRYPTION_KEY, message.text)
+                await state.update_data(tonapi_key=tonapi_key.decode())
+
                 await windows.main(
                     bot=message.bot, state=state,
                     chat_id=chat_id, message_id=message_id,
@@ -167,9 +180,9 @@ async def invalid_api_key(message: Message, state: FSMContext, chat_id, message_
 def register(dp: Dispatcher) -> None:
     dp.register_message_handler(
         set_api_key, IsPrivate(),
-        state=State.set_api_key, content_types="any"
+        state=State.set_api_key, content_types="any",
     )
     dp.register_message_handler(
         main, IsPrivate(),
-        state="*", content_types="any"
+        state="*", content_types="any",
     )
