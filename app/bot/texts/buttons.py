@@ -6,7 +6,7 @@ from ..utils.address import AddressDisplay
 
 back = "‹ Back"
 
-confirm = "✔ Confirm"
+confirm = "✓ Confirm"
 
 go_main = "‹ Go to main"
 
@@ -49,7 +49,7 @@ def create_event_button(event: AccountEvent) -> str:
     timestamp = datetime.fromtimestamp(event.timestamp).strftime('%d %b, %H:%M')
     action = event.actions[0]
 
-    button = f"{timestamp} • {action.simple_preview.description}"
+    button = f"[ {timestamp} ]  •  {action.simple_preview.description}"
 
     if action.TonTransfer or action.JettonTransfer:
         sender = action.TonTransfer.sender if action.TonTransfer else action.JettonTransfer.sender
@@ -57,20 +57,20 @@ def create_event_button(event: AccountEvent) -> str:
 
         if event.account.address.to_userfriendly() == sender.address.to_userfriendly():
             button = (
-                f"{timestamp} "
-                f"↑ Sent to {AddressDisplay(recipient).short(4, 4)} "
-                f"- {action.simple_preview.value}"
+                f"[ {timestamp} ]"
+                f"    to {AddressDisplay(recipient).short(3, 4)}"
+                f"    - {action.simple_preview.value}"
             )
         else:
             button = (
-                f"{timestamp} "
-                f"↓ Received from {AddressDisplay(sender).short(4, 4)} "
-                f"+ {action.simple_preview.value}"
+                f"[ {timestamp} ]"
+                f"    from {AddressDisplay(sender).short(3, 4)}"
+                f"    + {action.simple_preview.value}"
             )
 
     elif action.ContractDeploy:
         button = (
-            f"{timestamp} "
+            f"[ {timestamp} ]"
             f"• {action.simple_preview.name} "
             f"{', '.join(action.ContractDeploy.interfaces)}"
         )
@@ -87,15 +87,15 @@ def create_event_button(event: AccountEvent) -> str:
 
         if event.account.address.to_userfriendly() == sender.address.to_userfriendly():
             button = (
-                f"{timestamp} "
-                f"↑ Sent to {AddressDisplay(recipient).short(4, 4)} "
-                f"- NFT"
+                f"[ {timestamp} ]"
+                f"    to {AddressDisplay(recipient).short(3, 4)}"
+                f"    - {action.simple_preview.value}"
             )
         else:
             button = (
-                f"{timestamp} "
-                f"↓ Received from {AddressDisplay(sender).short(4, 4)} "
-                f"+ NFT"
+                f"[ {timestamp} ]"
+                f"    from {AddressDisplay(sender).short(3, 4)}"
+                f"    + {action.simple_preview.value}"
             )
 
     elif action.NftPurchase:
@@ -103,15 +103,17 @@ def create_event_button(event: AccountEvent) -> str:
         buyer = action.NftPurchase.buyer
         if event.account.address.to_userfriendly() == seller.address.to_userfriendly():
             button = (
-                f"{timestamp} "
-                f"↑ Sold to {AddressDisplay(buyer).short(4, 4)} "
-                f"- NFT"
+                f"[ {timestamp} ]"
+                f"Sold"
+                f"    to {AddressDisplay(buyer).short(3, 4)}"
+                f"    - {action.simple_preview.value}"
             )
         else:
             button = (
-                f"{timestamp} "
-                f"↓ Purchased from {AddressDisplay(seller).short(4, 4)} "
-                f"+ NFT"
+                f"[ {timestamp} ]"
+                f"Purchased"
+                f"    from {AddressDisplay(seller).short(3, 4)}"
+                f"    + {action.simple_preview.value}"
             )
         button += f"• for {action.simple_preview.value}"
 

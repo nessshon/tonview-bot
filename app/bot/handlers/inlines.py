@@ -4,7 +4,7 @@ from aiogram import Dispatcher
 from aiogram.types import InlineQuery
 from aiogram.utils.parts import paginate
 from pytonapi import AsyncTonapi
-from pytonapi.exceptions import TONAPIUnauthorizedError, TONAPITooManyRequestsError, TONAPIBadRequestError
+from pytonapi.exceptions import TONAPIUnauthorizedError, TONAPITooManyRequestsError
 
 from app.bot.keyboards import inline
 from app.bot.texts import articles, messages
@@ -103,13 +103,13 @@ async def inline_query_handler(inline_query: InlineQuery, tonapi: AsyncTonapi):
             case _:
                 results = await contract_inline_query(inline_query, tonapi)
                 await inline_query.answer(
-                    results=[results], cache_time=10, is_personal=True
+                    results=results, cache_time=5, is_personal=True
                 )
 
     except Exception as e:
         logging.error(e)
 
-    await inline_query.answer([], cache_time=10, is_personal=True)
+    await inline_query.answer([], cache_time=1, is_personal=True)
 
 
 async def contract_inline_query(inline_query: InlineQuery, tonapi: AsyncTonapi):
@@ -157,12 +157,21 @@ async def contract_inline_query(inline_query: InlineQuery, tonapi: AsyncTonapi):
                     return create_contract_article(account, message_text, reply_markup)
 
                 case _:
-                    chl = f"ton://transfer/{account.address.to_userfriendly()}"
-                    preview_url = f"https://chart.googleapis.com/chart?chs=512x512&cht=qr&chl={chl}"
-                    message_text = messages.information(account, preview_url)
-                    reply_markup = inline.information(account.address.to_userfriendly(), True)
+                    match inline_query.query:
+                        case domain if domain[-4:] == ".ton" or domain[-5:] == ".t.me":
+                            request = await tonapi.dns.resolve(domain.lower())
+                            account_id = request.wallet.address.to_userfriendly()
+                        case address if len(address) == 48 or len(address) == 66:
+                            account_id = address
+                        case _:
+                            account_id = None
+                    if account_id:
+                        chl = f"ton://transfer/{account.address.to_userfriendly()}"
+                        preview_url = f"https://chart.googleapis.com/chart?chs=512x512&cht=qr&chl={chl}"
+                        message_text = messages.information(account, preview_url)
+                        reply_markup = inline.information(account.address.to_userfriendly(), True)
 
-                    return create_contract_article(account, message_text, reply_markup)
+                        return create_contract_article(account, message_text, reply_markup)
 
     except (TONAPIUnauthorizedError, TONAPITooManyRequestsError):
         raise
