@@ -22,23 +22,23 @@ switch_to_mainnet = "• Switch to Mainnet"
 
 switch_to_testnet = "• Switch to Testnet"
 
-tokens = "• Tokens"
+tokens = "Tokens"
 
-collectibles = "• Collectibles"
+collectibles = "Collectibles"
 
-events = "• Transaction history"
+events = "Transaction history"
 
 open_in_inline_mode = "• View in expanded list"
 
-show_json = "• Show JSON"
+show_json = "Show JSON"
 
-metadata = "• Metadata"
+metadata = "Metadata"
 
-attributes = "• Attributes"
+attributes = "Attributes"
 
-items = "• Items"
+items = "Items"
 
-holders = "• Holders"
+holders = "Holders"
 
 export_as_json = "• Export as JSON"
 
