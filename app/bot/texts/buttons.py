@@ -28,7 +28,7 @@ collectibles = "Collectibles"
 
 events = "Transaction history"
 
-open_in_inline_mode = "Open in inline mode"
+open_in_inline_mode = "View in expanded list"
 
 show_json = "Show JSON"
 
