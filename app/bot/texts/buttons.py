@@ -18,9 +18,9 @@ set_api_key = "• Set API key"
 
 del_api_key = "• Remove API key"
 
-switch_to_mainnet = "Switch to Mainnet"
+switch_to_mainnet = "• Switch to Mainnet"
 
-switch_to_testnet = "Switch to Testnet"
+switch_to_testnet = "• Switch to Testnet"
 
 tokens = "• Tokens"
 
