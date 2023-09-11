@@ -121,8 +121,7 @@ confirm_export = (
 confirm_export_all_time = (
     f"{hide_link('https://telegra.ph//file/15ad871627114c4baee13.jpg')}"
     "<b>Export details:</b>\n\n"
-    f"• {hbold('Export date:')}\n"
-    f"{hcode('{export_date}')}\n\n"
+    f"{hbold('{export_date}')}\n\n"
     f"• {hbold('Export type:')}\n"
     f"{hcode('{export_type}')}\n\n"
     f"{hbold('Confirm export?')}\n"
