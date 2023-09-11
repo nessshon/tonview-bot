@@ -250,6 +250,9 @@ class InlineKeyboardCalendar:
     selected_range_day = "› {} ‹"
     selected_end_day = "· {} ‹"
 
+    export_for_all_time = "Export for all time"
+    cb_export_for_all_time = "cb_export_for_all_time"
+
     def __init__(self, date: int, start_date: int | None = None, end_date: int | None = None):
         self.date = datetime.datetime.fromtimestamp(date)
         self.start_date = datetime.datetime.fromtimestamp(start_date) if start_date else None
@@ -351,6 +354,10 @@ class InlineKeyboardCalendar:
         markup.inline_keyboard += self._months_inline_keyboard()
         markup.inline_keyboard += self._week_inline_keyboard()
         markup.inline_keyboard += self._days_inline_keyboard()
+
+        markup.inline_keyboard += [
+            [InlineKeyboardButton(text=self.export_for_all_time, callback_data=self.cb_export_for_all_time)]
+        ]
 
         navigation_inline_keyboard = [InlineKeyboardButton(text=self.back, callback_data=self.cb_back)]
         if self.start_date and self.end_date:

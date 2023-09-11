@@ -281,6 +281,13 @@ async def select_date(call: CallbackQuery, state: FSMContext, chat_id, message_i
                 bot=call.bot, state=state,
                 chat_id=chat_id, message_id=message_id,
             )
+        case InlineKeyboardCalendar.cb_export_for_all_time:
+            await state.update_data(start_date=None, end_date=None,
+                                    all_time=call.data)
+            await windows.confirm_export(
+                bot=call.bot, state=state,
+                chat_id=chat_id, message_id=message_id,
+            )
 
         case cdata if cdata.startswith(InlineKeyboardCalendar.cb_year):
             if cdata == InlineKeyboardCalendar.cb_year:
@@ -374,26 +381,39 @@ async def confirm_export(call: CallbackQuery, state: FSMContext, tonapi: AsyncTo
                 bot=call.bot, state=state,
                 chat_id=chat_id, message_id=message_id,
             )
+        case callback_data.go_main:
+            await windows.main(
+                bot=call.bot, state=state,
+                chat_id=chat_id, message_id=message_id,
+            )
         case callback_data.confirm:
             try:
                 async with ThrottlingContext(bot=call.bot, state=state,
                                              chat_id=chat_id, message_id=message_id,
                                              emojis=EMOJIS_MAGNIFIER):
                     account: Account = Account(**data["account"])
+
                     start_date = data.get("start_date", None)
                     end_date = data.get("end_date", None)
+                    all_time = data.get("all_time", None)
 
                     next_from = None
                     start_export_date = datetime.datetime.now()
                     events = AccountEvents(events=[], next_from=0)
 
                     while True:
-                        search = await tonapi.accounts.get_events(
-                            account_id=account.address.to_userfriendly(),
-                            start_date=int(str(start_date).split(".")[0]),
-                            end_date=int(str(end_date).split(".")[0]),
-                            before_lt=next_from, limit=1000,
-                        )
+                        if not all_time:
+                            search = await tonapi.accounts.get_events(
+                                account_id=account.address.to_userfriendly(),
+                                start_date=int(str(start_date).split(".")[0]),
+                                end_date=int(str(end_date).split(".")[0]),
+                                before_lt=next_from, limit=1000,
+                            )
+                        else:
+                            search = await tonapi.accounts.get_events(
+                                account_id=account.address.to_userfriendly(),
+                                before_lt=next_from, limit=1000,
+                            )
                         if len(search.events) == 0 or search.next_from == 0:
                             break
                         next_from = search.next_from
@@ -410,14 +430,24 @@ async def confirm_export(call: CallbackQuery, state: FSMContext, tonapi: AsyncTo
                     time_spent_seconds = (end_export_date - start_export_date).total_seconds()
                     time_spent = str(datetime.timedelta(seconds=time_spent_seconds)).split(".")[0]
 
-                    caption = messages.export_completed.format(
-                        address=account.address.to_userfriendly(),
-                        start_date=datetime.datetime.fromtimestamp(start_date).strftime("%Y-%m-%d %H:%M"),
-                        end_date=datetime.datetime.fromtimestamp(end_date).strftime("%Y-%m-%d %H:%M"),
-                        export_type=getattr(buttons, data["export_type"]).split(" ")[2],
-                        total_rows=len(events.events),
-                        time_spent=time_spent,
-                    )
+                    if not all_time:
+                        caption = messages.export_completed.format(
+                            address=account.address.to_userfriendly(),
+                            start_date=datetime.datetime.fromtimestamp(start_date).strftime("%Y-%m-%d %H:%M"),
+                            end_date=datetime.datetime.fromtimestamp(end_date).strftime("%Y-%m-%d %H:%M"),
+                            export_type=getattr(buttons, data["export_type"]).split(" ")[2],
+                            total_rows=len(events.events),
+                            time_spent=time_spent,
+                        )
+                    else:
+                        caption = messages.confirm_export_all_time_completed.format(
+                            address=account.address.to_userfriendly(),
+                            export_date=InlineKeyboardCalendar.export_for_all_time,
+                            export_type=getattr(buttons, data["export_type"]).split(" ")[2],
+                            total_rows=len(events.events),
+                            time_spent=time_spent,
+                        )
+
                     await call.message.answer_document(document=document, caption=caption)
                     await delete_previous_message(bot=call.bot, state=state)
                     await windows.main(

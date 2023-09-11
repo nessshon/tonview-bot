@@ -93,7 +93,7 @@ no_more_pages = "This is the last page."
 
 events_page = (
     f"{hide_link('https://telegra.ph//file/26d99fcbfd04a3657606b.jpg')}"
-    f"• {hbold('Address:')}\n"
+    f"• {hbold('Account:')}\n"
     f"{hcode('{address}')}\n\n"
     f"{hbold('Transactions history:')}\n"
 )
@@ -118,15 +118,35 @@ confirm_export = (
     f"{hcode('{export_type}')}\n\n"
     f"{hbold('Confirm export?')}\n"
 )
-
+confirm_export_all_time = (
+    f"{hide_link('https://telegra.ph//file/15ad871627114c4baee13.jpg')}"
+    "<b>Export details:</b>\n\n"
+    f"• {hbold('Export date:')}\n"
+    f"{hcode('{export_date}')}\n\n"
+    f"• {hbold('Export type:')}\n"
+    f"{hcode('{export_type}')}\n\n"
+    f"{hbold('Confirm export?')}\n"
+)
 export_completed = (
     "#Export\n\n"
     f"• {hbold('Address:')}\n"
     f"{hcode('{address}')}\n\n"
-    f"• {hbold('Start date:')}\n"
-    f"{hcode('{start_date}')}\n\n"
-    f"• {hbold('End date:')}\n"
-    f"{hcode('{end_date}')}\n\n"
+    f"• {hbold('Export date:')}\n"
+    f"{hcode('{export_date}')}\n\n"
+    f"• {hbold('Export type:')}\n"
+    f"{hcode('{export_type}')}\n\n"
+    f"• {hbold('Total rows:')}\n"
+    f"{hcode('{total_rows}')}\n\n"
+    f"• {hbold('Time spent:')}\n"
+    f"{hcode('{time_spent}')}"
+)
+
+confirm_export_all_time_completed = (
+    "#Export\n\n"
+    f"• {hbold('Address:')}\n"
+    f"{hcode('{address}')}\n\n"
+    f"• {hbold('Export date:')}\n"
+    f"{hcode('{export_date}')}\n\n"
     f"• {hbold('Export type:')}\n"
     f"{hcode('{export_type}')}\n\n"
     f"• {hbold('Total rows:')}\n"

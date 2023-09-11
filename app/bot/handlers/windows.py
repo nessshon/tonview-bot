@@ -276,14 +276,21 @@ async def confirm_export(bot: Bot, state: FSMContext, chat_id: int, message_id: 
 
     start_date = data.get("start_date")
     end_date = data.get("end_date")
+    all_time = data.get("all_time")
 
-    text = messages.confirm_export.format(
-        start_date=datetime.datetime.fromtimestamp(start_date).strftime("%Y-%m-%d %H:%M")
-        if start_date else "Select start date",
-        end_date=datetime.datetime.fromtimestamp(end_date).strftime("%Y-%m-%d %H:%M")
-        if end_date else "Select end date",
-        export_type=getattr(buttons, data.get("export_type")),
-    )
+    if all_time == InlineKeyboardCalendar.cb_export_for_all_time:
+        text = messages.confirm_export_all_time.format(
+            export_type=getattr(buttons, data.get("export_type")),
+            export_date=InlineKeyboardCalendar.export_for_all_time,
+        )
+    else:
+        text = messages.confirm_export.format(
+            start_date=datetime.datetime.fromtimestamp(start_date).strftime("%Y-%m-%d %H:%M")
+            if start_date else "Select start date",
+            end_date=datetime.datetime.fromtimestamp(end_date).strftime("%Y-%m-%d %H:%M")
+            if end_date else "Select end date",
+            export_type=getattr(buttons, data.get("export_type")),
+        )
     markup = inline.back__confirm()
 
     await edit_or_send_message(
