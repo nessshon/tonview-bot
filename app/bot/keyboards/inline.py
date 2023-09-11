@@ -250,7 +250,7 @@ class InlineKeyboardCalendar:
     selected_range_day = "› {} ‹"
     selected_end_day = "· {} ‹"
 
-    export_for_all_time = "Export for all time"
+    export_for_all_time = "• Export for all time"
     cb_export_for_all_time = "cb_export_for_all_time"
 
     def __init__(self, date: int, start_date: int | None = None, end_date: int | None = None):
