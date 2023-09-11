@@ -10,39 +10,39 @@ confirm = "✓ Confirm"
 
 go_main = "‹ Go to main"
 
-terms = "Terms of use"
+terms = "• Terms of use"
 
-privacy = "Privacy policy"
+privacy = "• Privacy policy"
 
-set_api_key = "Set API key"
+set_api_key = "• Set API key"
 
-del_api_key = "Remove API key"
+del_api_key = "• Remove API key"
 
 switch_to_mainnet = "Switch to Mainnet"
 
 switch_to_testnet = "Switch to Testnet"
 
-tokens = "Tokens"
+tokens = "• Tokens"
 
-collectibles = "Collectibles"
+collectibles = "• Collectibles"
 
-events = "Transaction history"
+events = "• Transaction history"
 
-open_in_inline_mode = "View in expanded list"
+open_in_inline_mode = "• View in expanded list"
 
-show_json = "Show JSON"
+show_json = "• Show JSON"
 
-metadata = "Metadata"
+metadata = "• Metadata"
 
-attributes = "Attributes"
+attributes = "• Attributes"
 
-items = "Items"
+items = "• Items"
 
-holders = "Holders"
+holders = "• Holders"
 
-export_as_json = "Export as JSON"
+export_as_json = "• Export as JSON"
 
-export_as_csv = "Export as CSV"
+export_as_csv = "• Export as CSV"
 
 
 def create_event_button(event: AccountEvent) -> str:
