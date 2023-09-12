@@ -23,7 +23,8 @@ async def main(bot: Bot, state: FSMContext, chat_id: int, message_id: int) -> No
     data = await state.get_data()
 
     text = messages.main
-    markup = inline.main(data.get("testnet", False), "tonapi_key" in data)
+    markup = inline.main(data.get("testnet", False),
+                         "tonapi_key" in data and data["tonapi_key"])
 
     await edit_or_send_message(
         bot=bot, state=state,
