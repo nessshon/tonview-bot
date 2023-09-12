@@ -421,7 +421,7 @@ async def confirm_export(call: CallbackQuery, state: FSMContext, tonapi: AsyncTo
 
                         for event in search.events:
                             if event.actions[0].TonTransfer:
-                                amount = float(event.actions[0].simple_preview.value.split(" ")[0])
+                                amount = float(event.actions[0].simple_preview.value.split(" ")[0].replace(",", ""))
                                 if event.actions[0].TonTransfer.sender.address.to_userfriendly() == \
                                         account.address.to_userfriendly():
                                     amount_sent += amount
