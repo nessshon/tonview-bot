@@ -130,13 +130,20 @@ export_completed = (
     "#Export\n\n"
     f"• {hbold('Address:')}\n"
     f"{hcode('{address}')}\n\n"
-    f"{hbold('{export_date}')}\n\n"
+    f"• {hbold('Start date:')}\n"
+    f"{hcode('{start_date}')}\n\n"
+    f"• {hbold('End date:')}\n"
+    f"{hcode('{end_date}')}\n\n"
     f"• {hbold('Export type:')}\n"
     f"{hcode('{export_type}')}\n\n"
     f"• {hbold('Total rows:')}\n"
     f"{hcode('{total_rows}')}\n\n"
     f"• {hbold('Time spent:')}\n"
-    f"{hcode('{time_spent}')}"
+    f"{hcode('{time_spent}')}\n\n"
+    f"• {hbold('Total sent:')}\n"
+    f"{hcode('{amount_sent} TON')}\n\n"
+    f"• {hbold('Total received:')}\n"
+    f"{hcode('{amount_received} TON')}"
 )
 
 confirm_export_all_time_completed = (
@@ -150,7 +157,11 @@ confirm_export_all_time_completed = (
     f"• {hbold('Total rows:')}\n"
     f"{hcode('{total_rows}')}\n\n"
     f"• {hbold('Time spent:')}\n"
-    f"{hcode('{time_spent}')}"
+    f"{hcode('{time_spent}')}\n\n"
+    f"• {hbold('Total sent:')}\n"
+    f"{hcode('{amount_sent} TON')}\n\n"
+    f"• {hbold('Total received:')}\n"
+    f"{hcode('{amount_received} TON')}"
 )
 
 export_failed = (
