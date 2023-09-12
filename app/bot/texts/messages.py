@@ -159,9 +159,9 @@ confirm_export_all_time_completed = (
     f"• {hbold('Time spent:')}\n"
     f"{hcode('{time_spent}')}\n\n"
     f"• {hbold('Total sent:')}\n"
-    f"{hcode('{amount_sent} TON')}\n\n"
+    f"{hcode('{amount_sent}')}\n\n"
     f"• {hbold('Total received:')}\n"
-    f"{hcode('{amount_received} TON')}"
+    f"{hcode('{amount_received}')}"
 )
 
 export_failed = (
