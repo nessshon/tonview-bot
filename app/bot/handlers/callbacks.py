@@ -443,7 +443,7 @@ async def confirm_export(call: CallbackQuery, state: FSMContext, tonapi: AsyncTo
                         caption = messages.confirm_export_all_time_completed.format(
                             address=account.address.to_userfriendly(),
                             export_date=InlineKeyboardCalendar.export_for_all_time,
-                            export_type=getattr(buttons, data["export_type"]).split(" ")[2],
+                            export_type=getattr(buttons, data["export_type"]),
                             total_rows=len(events.events),
                             time_spent=time_spent,
                         )
