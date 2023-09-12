@@ -451,8 +451,8 @@ async def confirm_export(call: CallbackQuery, state: FSMContext, tonapi: AsyncTo
                             export_type=getattr(buttons, data["export_type"]).split(" ")[3],
                             total_rows=len(events.events),
                             time_spent=time_spent,
-                            amount_sent=f"{amount_sent:,.2f} {amount_sent * price:,.2f}",
-                            amount_received=f"{amount_received:,.2f} {amount_received * price:,.2f}",
+                            amount_sent=f"{amount_sent:,.2f} {(amount_sent * price):,.2f}",
+                            amount_received=f"{amount_received:,.2f} {(amount_received * price):,.2f}",
                         )
                     else:
                         caption = messages.confirm_export_all_time_completed.format(
