@@ -6,8 +6,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.utils.markdown import hbold, hcode
 from aiogram.utils.parts import paginate
 from pytonapi.schema.accounts import Account
-from pytonapi.schema.blockchain import Transaction
-from pytonapi.schema.events import AccountEvents
+from pytonapi.schema.events import AccountEvents, Event
 from pytonapi.schema.jettons import JettonInfo
 from pytonapi.schema.nft import NftItem, NftCollection
 
@@ -142,7 +141,7 @@ async def information_collection(bot: Bot, state: FSMContext, chat_id: int, mess
 async def information_event(bot: Bot, state: FSMContext, chat_id: int, message_id: int) -> None:
     data = await state.get_data()
 
-    event: Transaction = Transaction(**data["event"])
+    event: Event = Event(**data["event"])
 
     markup = inline.information_event()
     text = await messages.contract_event(event)
@@ -198,7 +197,7 @@ async def detail_metadata(bot: Bot, state: FSMContext, chat_id: int, message_id:
 async def information_event_json(bot: Bot, state: FSMContext, chat_id: int, message_id: int) -> None:
     data = await state.get_data()
 
-    event: Transaction = Transaction(**data["event"])
+    event: Event = Event(**data["event"])
 
     markup = inline.back()
     text = hcode(json.dumps(event.dict(), ensure_ascii=False, sort_keys=True, indent=2))

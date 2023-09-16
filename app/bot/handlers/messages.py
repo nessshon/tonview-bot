@@ -85,8 +85,8 @@ async def main(message: Message, state: FSMContext, tonapi: AsyncTonapi, chat_id
                                 chat_id=chat_id, message_id=message_id,
                             )
                 else:
-                    trace = await tonapi.blockchain.get_transaction_data(transaction_id=message.text)
-                    await state.update_data(from_pages=False, event=trace.dict())
+                    event = await tonapi.events.get_event(event_id=message.text)
+                    await state.update_data(from_pages=False, event=event.dict())
                     await windows.information_event(
                         bot=message.bot, state=state,
                         chat_id=chat_id, message_id=message_id,

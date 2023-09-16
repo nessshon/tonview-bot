@@ -2,10 +2,9 @@ from datetime import datetime
 
 from aiogram.utils.markdown import hide_link, hbold, hcode, hitalic, hlink
 from pytonapi.schema.accounts import Account
+from pytonapi.schema.events import Event
 from pytonapi.schema.jettons import JettonInfo
 from pytonapi.schema.nft import NftItem, NftCollection
-from pytonapi.schema.traces import Transaction
-from pytonapi.utils import nano_to_amount
 
 from app.bot.utils.address import AddressDisplay
 from app.bot.utils.links import GetgemsLink
@@ -283,65 +282,39 @@ async def information_collection(account: Account, collection: NftCollection) ->
     return text
 
 
-async def contract_event(event: Transaction):
+async def contract_event(event: Event):
     text = (
         f"• {hbold('Timestamp:')}\n"
-        f"{hcode(datetime.fromtimestamp(event.utime).strftime('%d.%m.%Y, %H:%M:%S'))}\n\n"
+        f"{hcode(datetime.fromtimestamp(event.timestamp).strftime('%d.%m.%Y, %H:%M:%S'))}\n\n"
     )
 
-    if any(event.out_msgs):
-        action = f"Sent TON"
-        destination = (
-            event.out_msgs[0].destination.address.to_userfriendly()
-            if event.out_msgs[0].destination else None
+    for action in event.actions:
+        text += (
+            f"• {hbold('Action:')}\n"
+            f"{action.simple_preview.name}\n"
+            f"• {hbold('Route:')}\n"
         )
-        source = (
-            event.out_msgs[0].source.address.to_userfriendly()
-            if event.out_msgs[0].source else None
-        )
-        comment = (
-            event.out_msgs[0].decoded_body.get("text")
-            if event.out_msgs[0].decoded_op_name == "text_comment" else None
-        )
-        amount = nano_to_amount(event.out_msgs[0].value, 8)
-    else:
-        action = "Received TON"
-        destination = (
-            event.in_msg.destination.address.to_userfriendly()
-            if event.in_msg.destination else None
-        )
-        source = (
-            event.in_msg.source.address.to_userfriendly()
-            if event.in_msg.source else None
-        )
-        comment = (
-            event.in_msg.decoded_body.get("text")
-            if event.in_msg.decoded_op_name == "text_comment" else None
-        )
-        amount = nano_to_amount(event.in_msg.value, 8)
+
+        if len(action.simple_preview.accounts) == 2:
+            text += (
+                f"{AddressDisplay(action.simple_preview.accounts[0]).short_link()} → "
+                f"{AddressDisplay(action.simple_preview.accounts[1]).short_link()}\n"
+            )
+        else:
+            text += (
+                f"{AddressDisplay(action.simple_preview.accounts[0]).short_link()}\n"
+            )
+
+        if action.simple_preview.value:
+            text += (
+                f"• {hbold('Value:')}\n"
+                f"{hcode(action.simple_preview.value)}\n\n"
+            )
+        else:
+            text += "\n"
 
     text += (
-        f"• {hbold('Action:')}\n"
-        f"{action}\n\n"
-    )
-    if source: text += (  # noqa:E701
-        f"• {hbold('Source:')}\n"
-        f"{hcode(source)} \n\n"
-    )
-    if destination: text += (  # noqa:E701
-        f"• {hbold('Destination:')}\n"
-        f"{hcode(destination)} \n\n"
-    )
-    if comment: text += (  # noqa:E701
-        f"• {hbold('Comment:')}\n"
-        f"{hcode(comment)}\n\n"
-    )
-    text += (
-        f"• {hbold('Amount:')}\n"
-        f"{amount} TON\n\n"
-    )
-    text += (
-        f"• {hbold('Hash:')}\n"
-        f"{hcode(event.hash)}"
+        f"• {hbold('hash:')}\n"
+        f"{hcode(event.event_id)}\n"
     )
     return text

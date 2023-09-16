@@ -169,9 +169,7 @@ async def details(call: CallbackQuery, state: FSMContext, tonapi: AsyncTonapi, c
             async with ThrottlingContext(bot=call.bot, state=state,
                                          chat_id=chat_id, message_id=message_id,
                                          emojis=EMOJIS_MAGNIFIER):
-                event = await tonapi.blockchain.get_transaction_data(
-                    transaction_id=event_id
-                )
+                event = await tonapi.events.get_event(event_id=event_id)
                 await state.update_data(from_pages=True, event=event.dict())
                 await windows.information_event(
                     bot=call.bot, state=state,

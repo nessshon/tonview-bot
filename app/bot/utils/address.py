@@ -35,7 +35,7 @@ class AddressDisplay:
     def short_link(self, base_url: str = None) -> str:
         url = base_url or "https://tonviewer.com/"
         account = hlink(self.short(), url=url + self.address)
-        return f"{self._scam} {account}" if self.is_scam else account
+        return f"{account}" if self.is_scam else account
 
 
 addr_book = {
@@ -65,5 +65,4 @@ scam_book = [
     "EQAOuLEuA7Tuvfvzmi0BWFFq_2t5iC4cIOMcJyWPG5_xRsVn",
     "EQChLBUYFaZ4mLVEuaBFDXUBjEBwQ-deeMEFS5ZVcLGWI3L0",
     "EQAPwB9l6ACiwRUieFcZN-4S3J8oG9htE7o7bWMg5V8g_Rpa",
-    "EQCNgCFZ6vBrHHMJvJopfjpBPPSRajlj3etvm-rFAWKb8vep",
 ]
