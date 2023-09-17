@@ -182,7 +182,7 @@ async def information(account: Account, preview: str) -> str:
         f"• {hbold('Status:')}\n"
         f"{hcode(account.status)}\n\n"
         f"• {hlink('Balance', url='https://www.coingecko.com/en/coins/toncoin')}:\n"
-        f"{amount:,.6f} TON {hcode(f'≈ ${round(amount * price, 2):,.2f}')}\n\n"
+        f"{hcode(f'{amount:,.6f}')} TON {hcode(f'≈ ${round(amount * price, 2):,.2f}')}\n\n"
         f"• {hlink('Account', url='https://tonviewer.com/' + account.address.to_userfriendly())}:\n"
         f"{hcode(AddressDisplay(account).title())}\n\n"
         f"• {hbold('Raw:')}\n"
