@@ -98,7 +98,7 @@ def register(dp: Dispatcher) -> None:
 
 async def setup(dp: Dispatcher) -> None:
     commands = [
-        BotCommand("/about", "About bot"),
+        BotCommand("/help", "About bot"),
         BotCommand("/start", "Restart bot"),
         BotCommand("/set_api_key", "Set your API key"),
         BotCommand("/switch_network", "Switch network mode"),
