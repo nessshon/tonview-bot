@@ -10,6 +10,8 @@ confirm = "✓ Confirm"
 
 go_main = "‹ Go to main"
 
+source_code = "</> Source code"
+
 terms = "• Terms of use"
 
 privacy = "• Privacy policy"

@@ -11,6 +11,7 @@ class State(StatesGroup):
     information = St()
     information_event = St()
     information_event_json = St()
+
     detail = St()
     select_date = St()
     confirm_export = St()

@@ -33,6 +33,18 @@ async def main(bot: Bot, state: FSMContext, chat_id: int, message_id: int) -> No
     await State.main.set()
 
 
+async def help(bot: Bot, state: FSMContext, chat_id: int, message_id: int) -> None:
+    text = messages.help
+    markup = inline.help()
+
+    await edit_or_send_message(
+        bot=bot, state=state,
+        text=text, markup=markup,
+        chat_id=chat_id, message_id=message_id,
+    )
+    await State.main.set()
+
+
 async def set_api_key(bot: Bot, state: FSMContext, chat_id: int, message_id: int) -> None:
     text = messages.set_api_key
     markup = inline.back()

@@ -16,6 +16,23 @@ main = (
     "Send address, name or transaction:"
 )
 
+help = (
+    f"{hide_link('https://telegra.ph//file/e13b6f90497a231bf3712.jpg')}"
+    "<b>About the bot:</b>\n\n"
+    "• TONViewBot is a Telegram bot inspired by tonviewer.com. "
+    "It provides users with the ability to explore and retrieve information about blocks, "
+    "transactions, and addresses on the TON blockchain.\n\n"
+
+    f"• This bot utilizes the REST API from {hlink('tonapi.io', url='https://tonapi.io/api-v2')} "
+    f"to fetch data from the blockchain. "
+    "It also uses coingecko.com to fetch the current price of TON.\n\n"
+
+    "<b>Main technology stack:</b>\n"
+    f"• {hlink('python 3.10', 'https://www.python.org/downloads/release/python-3100/')}\n"
+    f"• {hlink('pytonapi 0.1.1', 'https://pypi.org/project/pytonapi/')}\n"
+    f"• {hlink('aiogram 2.25.1', 'https://pypi.org/project/aiogram/2.25.1/')}\n\n"
+    "For any feedback or inquiries, please reach out to @NessFeedbackBot.\n"
+)
 call__switched_to_testnet = (
     "Switched to Testnet!"
 )

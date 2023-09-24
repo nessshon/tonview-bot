@@ -42,6 +42,15 @@ async def start(message: Message, state: FSMContext, db: Database, chat_id: int)
 
 
 @rate_limit(1)
+async def help(message: Message, state: FSMContext, chat_id: int, message_id: int) -> None:
+    await windows.help(
+        bot=message.bot, state=state,
+        chat_id=chat_id, message_id=message_id,
+    )
+    await delete_message(message)
+
+
+@rate_limit(1)
 async def set_api_key(message: Message, state: FSMContext, chat_id: int, message_id: int) -> None:
     await windows.set_api_key(
         bot=message.bot, state=state,
@@ -74,6 +83,10 @@ def register(dp: Dispatcher) -> None:
         commands="start", state="*",
     )
     dp.register_message_handler(
+        help, IsPrivate(),
+        commands="help", state="*",
+    )
+    dp.register_message_handler(
         set_api_key, IsPrivate(),
         commands="set_api_key", state="*",
     )
@@ -85,6 +98,7 @@ def register(dp: Dispatcher) -> None:
 
 async def setup(dp: Dispatcher) -> None:
     commands = [
+        BotCommand("/about", "About bot"),
         BotCommand("/start", "Restart bot"),
         BotCommand("/set_api_key", "Set your API key"),
         BotCommand("/switch_network", "Switch network mode"),

@@ -114,72 +114,68 @@ async def inline_query_handler(inline_query: InlineQuery, tonapi: AsyncTonapi):
 
 async def contract_inline_query(inline_query: InlineQuery, tonapi: AsyncTonapi):
     try:
-        match inline_query.query:
-            case domain if domain[-4:] == ".ton" or domain[-5:] == ".t.me":
-                request = await tonapi.dns.resolve(domain.lower())
-                account_id = request.wallet.address.to_userfriendly()
-            case address if len(address) == 48 or len(address) == 66:
+        domain = inline_query.query
+        if domain[-4:] == ".ton" or domain[-5:] == ".t.me":
+            request = await tonapi.dns.resolve(domain.lower())
+            account_id = request.wallet.address.to_userfriendly()
+        else:
+            address = inline_query.query
+            if len(address) == 48 or len(address) == 66:
                 account_id = address
-            case _:
+            else:
                 account_id = None
 
         if account_id:
             account = await tonapi.accounts.get_info(account_id)
 
-            match account.interfaces:
-                case None:
+            if account.interfaces is None:
+                chl = f"ton://transfer/{account.address.to_userfriendly()}"
+                preview_url = f"https://chart.googleapis.com/chart?chs=512x512&cht=qr&chl={chl}"
+                message_text = await messages.information(account, preview_url)
+                reply_markup = inline.information(account.address.to_userfriendly(), True)
+                return create_contract_article(account, message_text, reply_markup)
+
+            elif "tep74" in account.interfaces:
+                jetton = await tonapi.jettons.get_info(account_id)
+                message_text = await messages.information_jetton(account, jetton)
+                reply_markup = inline.information_jetton(account.address.to_userfriendly(), True)
+                return create_contract_article(account, message_text, reply_markup)
+
+            elif "tep62_item" in account.interfaces:
+                nft = await tonapi.nft.get_item_by_address(account_id)
+                message_text = await messages.information_nft(account, nft)
+                reply_markup = inline.information_nft(account.address.to_userfriendly(), True)
+                return create_contract_article(account, message_text, reply_markup)
+
+            elif "tep62_collection" in account.interfaces:
+                collection = await tonapi.nft.get_collection_by_collection_address(account_id)
+                message_text = await messages.information_collection(account, collection)
+                reply_markup = inline.information_collection(account.address.to_userfriendly(), True)
+                return create_contract_article(account, message_text, reply_markup)
+
+            else:
+                domain = inline_query.query
+                if domain[-4:] == ".ton" or domain[-5:] == ".t.me":
+                    request = await tonapi.dns.resolve(domain.lower())
+                    account_id = request.wallet.address.to_userfriendly()
+                else:
+                    address = inline_query.query
+                    if len(address) == 48 or len(address) == 66:
+                        account_id = address
+                    else:
+                        account_id = None
+                if account_id:
                     chl = f"ton://transfer/{account.address.to_userfriendly()}"
                     preview_url = f"https://chart.googleapis.com/chart?chs=512x512&cht=qr&chl={chl}"
                     message_text = await messages.information(account, preview_url)
                     reply_markup = inline.information(account.address.to_userfriendly(), True)
-
                     return create_contract_article(account, message_text, reply_markup)
-
-                case interfaces if "tep74" in interfaces:
-                    jetton = await tonapi.jettons.get_info(account_id)
-                    message_text = await messages.information_jetton(account, jetton)
-                    reply_markup = inline.information_jetton(account.address.to_userfriendly(), True)
-
-                    return create_contract_article(account, message_text, reply_markup)
-
-                case interfaces if "tep62_item" in interfaces:
-                    nft = await tonapi.nft.get_item_by_address(account_id)
-                    message_text = await messages.information_nft(account, nft)
-                    reply_markup = inline.information_nft(account.address.to_userfriendly(), True)
-
-                    return create_contract_article(account, message_text, reply_markup)
-
-                case interfaces if "tep62_collection" in interfaces:
-                    collection = await tonapi.nft.get_collection_by_collection_address(account_id)
-                    message_text = await messages.information_collection(account, collection)
-                    reply_markup = inline.information_collection(account.address.to_userfriendly(), True)
-
-                    return create_contract_article(account, message_text, reply_markup)
-
-                case _:
-                    match inline_query.query:
-                        case domain if domain[-4:] == ".ton" or domain[-5:] == ".t.me":
-                            request = await tonapi.dns.resolve(domain.lower())
-                            account_id = request.wallet.address.to_userfriendly()
-                        case address if len(address) == 48 or len(address) == 66:
-                            account_id = address
-                        case _:
-                            account_id = None
-                    if account_id:
-                        chl = f"ton://transfer/{account.address.to_userfriendly()}"
-                        preview_url = f"https://chart.googleapis.com/chart?chs=512x512&cht=qr&chl={chl}"
-                        message_text = await messages.information(account, preview_url)
-                        reply_markup = inline.information(account.address.to_userfriendly(), True)
-
-                        return create_contract_article(account, message_text, reply_markup)
 
     except (TONAPIUnauthorizedError, TONAPITooManyRequestsError):
         raise
 
     except Exception as e:
-        if "encoding/hex" in str(e):
-            pass
-        else:
+        if "encoding/hex" not in str(e):
             raise
 
     return []

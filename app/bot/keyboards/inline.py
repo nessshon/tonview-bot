@@ -67,6 +67,15 @@ def main(testnet: bool = False, api_key: bool = False) -> InlineKeyboardMarkup:
     return markup
 
 
+def help() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text=buttons.source_code, url="https://github.com/nessshon/tonview-bot")],
+            [InlineKeyboardButton(text=buttons.go_main, callback_data=callback_data.go_main)],
+        ]
+    )
+
+
 def api_key_invalid() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[

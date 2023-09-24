@@ -39,6 +39,17 @@ async def edit_or_send_message(bot: Bot, state: FSMContext,
                                chat_id: int, message_id: int, text: str,
                                markup: InlineKeyboardMarkup = None,
                                ) -> Message | None:
+    """
+    Edit or send a message using the Telegram Bot API.
+
+    :param bot: The Bot instance used to send or edit the message.
+    :param state: The FSMContext instance.
+    :param chat_id: The ID of the chat where the message will be sent or edited.
+    :param message_id: The ID of the message to be edited.
+    :param text: The text of the message.
+    :param markup: The inline keyboard markup for the message (default: None).
+    :return: Message | None: The edited or sent message, or None if an error occurred.
+    """
     try:
         message = await bot.edit_message_text(
             text=text, chat_id=chat_id,

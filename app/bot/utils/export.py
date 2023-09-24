@@ -43,6 +43,12 @@ class ExportManager:
         self.buffer = BytesIO()
 
     def _create_rows(self) -> EventRows:
+        """
+        Create and populate the rows for the event table.
+
+        Returns:
+            EventRows: The populated EventRows object.
+        """
         for event in self.events.events:
             row = EventRow(
                 event_id=event.event_id,
@@ -70,6 +76,12 @@ class ExportManager:
         return EventRows(rows=self.rows)
 
     async def save_as_json(self) -> bytes:
+        """
+        Save the data as a JSON file and return the file content as bytes.
+
+        Returns:
+            bytes: The content of the JSON file as bytes.
+        """
         async with aiofiles.tempfile.NamedTemporaryFile("w+", suffix=".json", delete=True) as f:
             data = json.dumps(self._create_rows().to_dict(),
                               ensure_ascii=False,
@@ -81,6 +93,21 @@ class ExportManager:
         return self.buffer
 
     async def save_as_csv(self):
+        """
+        Save the data as a CSV file.
+
+        This function saves the data as a CSV file by performing the following steps:
+        1. Create a named temporary file with the .csv extension.
+        2. Set the fieldnames for the CSV file based on the EventRow fields.
+        3. Create an AsyncDictWriter object with the file, fieldnames, and quoting options.
+        4. Write the fieldnames to the CSV file.
+        5. Write the rows of data to the CSV file.
+        6. Seek to the beginning of the file.
+        7. Read the file buffer and store it in the buffer attribute.
+
+        Returns:
+            bytes: The file buffer containing the saved CSV data.
+        """
         async with aiofiles.tempfile.NamedTemporaryFile("w+", suffix=".csv", delete=True) as f:
             fieldnames = {field.name: field.name for field in fields(EventRow)}
             writer = AsyncDictWriter(f, fieldnames, restval="null", quoting=csv.QUOTE_ALL)
