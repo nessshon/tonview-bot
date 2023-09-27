@@ -21,7 +21,7 @@ class User(Base):
         nullable=False,
     )
     name = Column(
-        VARCHAR(length=64),
+        VARCHAR(length=255),
         nullable=False,
     )
     created_at = Column(
