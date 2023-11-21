@@ -87,7 +87,8 @@ async def information(bot: Bot, state: FSMContext, chat_id: int, message_id: int
     account: Account = Account(**data["account"])
     qr_data = f"ton://transfer/{account.address.to_userfriendly()}"
     qr_image = "https://telegra.ph//file/745d621b339ffe6568b13.jpg"
-    preview_url = f"https://qrcode.ness.su/create?data={qr_data}&image_url={qr_image}"
+    qr_option = "box_size=30&border=7&image_padding=20"
+    preview_url = f"https://qrcode.ness.su/create?{qr_option}&data={qr_data}&image_url={qr_image}"
     text = await messages.information(account, preview_url)
     markup = inline.information(account.address.to_userfriendly())
 
